@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周可可英語大冒險 💙 4.0 終極版</title>
+    <style>
+        :root { --shengmi-blue: #6495ED; --panel-bg: rgba(245, 250, 255, 0.95); }
+        body { font-family: "Quicksand", "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px; background-size: cover; background-position: center; background-attachment: fixed; margin: 0; }
+        #main-container { background: var(--panel-bg); width: 92%; max-width: 650px; padding: 25px; border-radius: 40px; border: 4px dashed var(--shengmi-blue); box-shadow: 0 15px 35px rgba(100,149,237,0.15); text-align: center; backdrop-filter: blur(12px); margin-top: 15px; position: relative; transition: 0.3s; }
+        #main-container:hover { border-style: solid; }
+        .top-nav { width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        .nav-btn { background: #fff; border: 2.5px dashed var(--shengmi-blue); color: var(--shengmi-blue); padding: 7px 12px; border-radius: 25px; cursor: pointer; font-size: 0.8rem; font-weight: 800; transition: 0.3s; }
+        .nav-btn:hover { border-style: solid; background: var(--shengmi-blue); color: #fff; }
+        .save-btn { background: #E3F2FD; border-color: #1976D2; color: #1976D2; border-style: solid; box-shadow: 0 4px 0 #1976D2; }
+        .save-btn:active { transform: translateY(2px); box-shadow: none; }
+        .progress-wrapper { position: relative; width: 100%; margin: 35px 0 20px; }
+        .progress-container { width: 100%; height: 12px; background: rgba(0,0,0,0.05); border-radius: 10px; position: relative; border: 2px solid #fff; }
+        #bar-fill { height: 100%; background: linear-gradient(90deg, var(--shengmi-blue), #A7C7E7); width: 0%; border-radius: 10px; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .croissant-marker { position: absolute; top: -32px; left: 0%; font-size: 28px; transform: translateX(-50%); transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); animation: wobble 2.5s infinite ease-in-out; pointer-events: none; }
+        @keyframes wobble { 0%, 100% { transform: translateX(-50%) rotate(-10deg); } 50% { transform: translateX(-50%) rotate(10deg); } }
+        .keke-stage { width: 170px; height: 170px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+        .keke-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.12)); }
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .cat-btn { padding: 25px 10px; border-radius: 25px; border: 3px dashed var(--shengmi-blue); background: rgba(255,255,255,0.8); cursor: pointer; font-weight: 900; color: var(--shengmi-blue); font-size: 0.9rem; line-height: 1.4; transition: 0.3s; }
+        .cat-btn:hover { border-style: solid; transform: translateY(-5px); background: #fff; }
+        .article-box { text-align: left; background: #fff; padding: 20px; border-radius: 20px; border: 3px dashed var(--shengmi-blue); margin-bottom: 20px; line-height: 1.8; font-size: 1.05rem; max-height: 250px; overflow-y: auto; }
+        .question-box { font-size: 1.1rem; font-weight: 800; margin: 20px 0; text-align: left; padding: 20px; border: 3px dashed var(--shengmi-blue); border-radius: 25px; background: rgba(255, 255, 255, 0.6); }
+        .opt-btn { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 2.5px dashed #e0e0e0; border-radius: 22px; background: #fff; cursor: pointer; font-size: 1rem; font-weight: 700; text-align: left; padding-left: 20px; transition: 0.2s; position: relative; }
+        .opt-btn:hover:not(:disabled) { border-style: solid; border-color: var(--shengmi-blue); }
+        .correct { background: #e8f5e9 !important; border-color: #4caf50 !important; border-style: solid !important; }
+        .wrong { background: #ffebee !important; border-color: #ef5350 !important; border-style: solid !important; }
+        .vocab-hint { text-decoration: underline dotted var(--shengmi-blue); cursor: help; position: relative; display: inline-block; }
+        .hint-popup { visibility: hidden; width: auto; min-width: 80px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 5px 10px; position: absolute; z-index: 9999; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 0.8rem; pointer-events: none; white-space: nowrap; }
+        .vocab-hint:hover .hint-popup { visibility: visible; opacity: 1; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; justify-content: center; align-items: center; }
+        .modal-body { background: #fff; width: 90%; max-width: 500px; max-height: 85vh; border-radius: 40px; padding: 25px; border: 4px dashed var(--shengmi-blue); overflow-y: auto; position: relative; }
+        .mistake-card { border: 3px dashed var(--shengmi-blue); background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 20px; text-align: left; position: relative; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; background: #fff; border: 1.5px solid #ff6b6b; color: #ff6b6b; font-size: 0.7rem; border-radius: 10px; padding: 2px 8px; cursor: pointer; font-weight: bold; }
+        .delete-btn:hover { background: #ff6b6b; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div id="main-container">
+    <div class="top-nav">
+        <button class="nav-btn" onclick="openReviewList()">📖 錯題本 (<span id="wrong-count">0</span>)</button>
+        <button class="nav-btn save-btn" onclick="saveData()">💾 保存進度</button>
+        <div>
+            <button class="nav-btn" onclick="showMenu()">🏠 目錄</button>
+            <button class="nav-btn" onclick="openSettings()">🎨 自定義</button>
+            <button class="nav-btn" onclick="toggleImport()">⚙️ 題庫</button>
+        </div>
+    </div>
+
+    <div id="category-menu">
+        <div class="keke-stage"><img id="menu-keke" class="keke-img" src="" alt=" "></div>
+        <h3 style="color: var(--shengmi-blue); font-weight: 900;">周可可英語練功房 💙</h3>
+        <div class="category-grid">
+            <button class="cat-btn" onclick="startCat('Reading')">Reading<br>Comprehension</button>
+            <button class="cat-btn" onclick="startCat('Error')">Error<br>Identification</button>
+            <button class="cat-btn" onclick="startCat('Sentence')">Sentence<br>Analysis</button>
+            <button class="cat-btn" onclick="startCat('Vocabulary')">Vocabulary<br>Usage</button>
+        </div>
+    </div>
+
+    <div id="quiz-ui" style="display:none;">
+        <div class="keke-stage"><img id="main-keke" class="keke-img" src="" alt=" "></div>
+        <div class="progress-wrapper"><div id="croissant" class="croissant-marker">🥐</div><div class="progress-container"><div id="bar-fill"></div></div></div>
+        <div id="article-area" class="article-box" style="display:none;"></div>
+        <div id="q-text" class="question-box"></div>
+        <div id="options-grid"></div>
+        <div id="feedback-area" style="display:none; margin-top: 15px; padding: 15px; background: rgba(100,149,237,0.1); border-radius: 20px; text-align: left; border-left: 8px solid var(--shengmi-blue);">
+            <div id="exp-text" style="font-weight:700;"></div>
+            <button class="nav-btn" style="width:100%; margin-top:10px; background: var(--shengmi-blue); color: white; border-style:solid;" onclick="goNext()">繼續挑戰 💙</button>
+        </div>
+    </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay"><div class="modal-body" style="text-align:left;">
+    <h3 style="color:var(--shengmi-blue); font-weight:900; text-align:center;">🎨 網頁裝修面版</h3>
+    <div style="border-bottom: 1px solid #eee; padding-bottom: 15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>🖼️ 網頁背景圖</span><label class="nav-btn" style="border-style:solid;">上傳<input type="file" hidden onchange="upFile(event, 'bg')"></label></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>❓ 思考中形象</span><label class="nav-btn" style="border-style:solid;">上傳<input type="file" hidden onchange="upFile(event, 'thinking')"></label></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>✅ 答對了形象</span><label class="nav-btn" style="border-style:solid;">上傳<input type="file" hidden onchange="upFile(event, 'happy')"></label></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>❌ 答錯了形象</span><label class="nav-btn" style="border-style:solid;">上傳<input type="file" hidden onchange="upFile(event, 'mistake')"></label></div>
+    </div>
+    <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button class="nav-btn" style="flex:1" onclick="exportQ()">💾 備份題庫</button>
+        <button class="nav-btn" style="flex:1; color:red; border-color:red;" onclick="clearAll()">🗑️ 清空數據</button>
+    </div>
+    <button class="nav-btn" style="display:block; margin:20px auto 0;" onclick="closeM('settings-modal')">✕ 關閉</button>
+</div></div>
+
+<div id="review-modal" class="modal-overlay"><div class="modal-body">
+    <div id="list-view">
+        <h3 style="color:var(--shengmi-blue); font-weight:900;">錯題筆記</h3>
+        <div id="mistake-list-content" style="max-height: 300px; overflow-y: auto;"></div>
+        <button class="nav-btn" style="background:var(--shengmi-blue); color:#fff; width:100%; border-style:solid;" onclick="startRev()">🎯 隨機複習</button>
+        <button class="nav-btn" style="display:block; margin:15px auto 0;" onclick="closeM('review-modal')">✕ 關閉</button>
+    </div>
+    <div id="quiz-view" style="display:none;">
+        <div id="rev-q-text" class="question-box"></div>
+        <div id="rev-options"></div>
+        <div id="rev-feedback" style="display:none; margin-top:10px; padding:10px; background:#f0f7ff; border-radius:10px; text-align:left; border-left:4px solid var(--shengmi-blue);"><div id="rev-exp"></div><button class="nav-btn" style="width:100%; margin-top:10px; border-style:solid; background:var(--shengmi-blue); color:#fff;" onclick="nextRev()">下一題</button></div>
+        <button class="nav-btn" style="display:block; margin:20px auto 0; border-color:#ff6b6b; color:#ff6b6b;" onclick="closeM('review-modal')">✕ 中止複習</button>
+    </div>
+</div></div>
+
+<div id="import-zone" style="display:none; margin: 15px auto; width: 92%; max-width: 550px;">
+    <textarea id="json-input" rows="4" style="width:100%; border-radius:15px; border:2.5px dashed var(--shengmi-blue); padding:10px; box-sizing: border-box;"></textarea>
+    <button class="nav-btn" style="background:#28a745; color:#fff; width:100%; border-style:solid; margin-top:10px;" onclick="importQ()">確認導入 💙</button>
+</div>
+
+<script>
+    let rawQ = [], filteredQ = [], mistakes = [], mainIdx = 0, revIdx = 0, revQueue = [], currentCat = "", doneIds = [];
+    let assets = { thinking: "", happy: "", mistake: "", bg: "" }, answered = false;
+
+    window.onload = () => {
+        const sa = localStorage.getItem('kekeAssets'); if (sa) { assets = JSON.parse(sa); if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`; if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking; }
+        rawQ = JSON.parse(localStorage.getItem('kekeRawQ') || '[]');
+        doneIds = JSON.parse(localStorage.getItem('kekeDoneIds') || '[]');
+        mistakes = JSON.parse(localStorage.getItem('kekeMistakes') || '[]');
+        document.getElementById('wrong-count').innerText = mistakes.length;
+        updateTotalDisplay(); 
+    };
+
+    function saveData() {
+        localStorage.setItem('kekeAssets', JSON.stringify(assets));
+        localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
+        localStorage.setItem('kekeDoneIds', JSON.stringify(doneIds));
+        localStorage.setItem('kekeMistakes', JSON.stringify(mistakes));
+        alert("✅ 保險箱鎖定！關機也不會忘喔 💙");
+    }
+
+    function process(t) {
+        if (!t) return "";
+        if (!answered) return t.replace(/\[\[(.*?)\|(.*?)\]\]/g, '$1');
+        return t.replace(/\[\[(.*?)\|(.*?)\]\]/g, `<span class="vocab-hint">$1<span class="hint-popup">$2</span></span>`);
+    }
+
+    function upFile(e, type) {
+        const f = e.target.files[0];
+        if (f) {
+            const r = new FileReader();
+            r.onload = (ev) => {
+                const d = ev.target.result;
+                if (type === 'bg') document.body.style.backgroundImage = `url(${d})`;
+                assets[type] = d;
+                if (type === 'thinking') { document.getElementById('menu-keke').src = d; document.getElementById('main-keke').src = d; }
+            };
+            r.readAsDataURL(f);
+        }
+    }
+
+    function startCat(cat) {
+        currentCat = cat;
+        let all = rawQ.filter(q => q.cat === cat);
+        let nd = all.filter(q => !doneIds.includes(q.q));
+        if (all.length === 0) return alert("該範疇暫無題目！");
+        if (nd.length === 0) { alert("做完一輪囉，重啟新冒險 💙"); doneIds = doneIds.filter(id => !all.map(q => q.q).includes(id)); nd = all; }
+        filteredQ = nd.sort(() => Math.random() - 0.5);
+        mainIdx = 0; showUI('quiz-ui'); renderMain();
+    }
+
+    function renderMain() {
+        answered = false; const q = filteredQ[mainIdx];
+        const percent = (mainIdx / filteredQ.length) * 100;
+        document.getElementById('bar-fill').style.width = percent + '%';
+        document.getElementById('croissant').style.left = percent + '%';
+        const art = document.getElementById('article-area'); art.style.display = q.article ? 'block' : 'none';
+        if (q.article) art.innerHTML = process(q.article);
+        document.getElementById('q-text').innerHTML = (q.cat === "Vocabulary" ? "<b>[Vocabulary Usage]: </b>" : "") + process(q.q);
+        document.getElementById('main-keke').src = assets.thinking || "";
+        const grid = document.getElementById('options-grid'); grid.innerHTML = '';
+        q.o.forEach((opt, i) => {
+            const b = document.createElement('button'); b.className = 'opt-btn';
+            let label = opt; if (q.cat === "Error") { const m = q.q.match(new RegExp(`\\[${opt.replace(/[\[\]]/g, '')}\\]\\s*([^\\s\\[]+)`)); label = m ? `${opt} ${m}` : opt; }
+            b.innerHTML = process(label);
+            b.onclick = () => {
+                answered = true;
+                document.querySelectorAll('#options-grid .opt-btn').forEach(btn => btn.disabled = true);
+                if (q.article) art.innerHTML = process(q.article);
+                document.getElementById('q-text').innerHTML = (q.cat === "Vocabulary" ? "<b>[Vocabulary Usage]: </b>" : "") + process(q.q);
+                document.querySelectorAll('#options-grid .opt-btn').forEach((btnRef, idx) => {
+                    let oL = q.o[idx]; if (q.cat === "Error") { const m = q.q.match(new RegExp(`\\[${oL.replace(/[\[\]]/g, '')}\\]\\s*([^\\s\\[]+)`)); oL = m ? `${oL} ${m}` : oL; }
+                    btnRef.innerHTML = process(oL);
+                });
+                if (i === q.a) { b.classList.add('correct'); document.getElementById('main-keke').src = assets.happy || ""; }
+                else { b.classList.add('wrong'); document.querySelectorAll('#options-grid .opt-btn')[q.a].classList.add('correct'); document.getElementById('main-keke').src = assets.mistake || ""; if (!mistakes.some(m => m.q === q.q)) mistakes.push(q); }
+                document.getElementById('exp-text').innerText = q.e; document.getElementById('feedback-area').style.display = 'block';
+                document.getElementById('wrong-count').innerText = mistakes.length;
+                if (!doneIds.includes(q.q)) doneIds.push(q.q);
+            };
+            grid.appendChild(b);
+        });
+        document.getElementById('feedback-area').style.display = 'none';
+    }
+
+    function goNext() { mainIdx++; if (mainIdx < filteredQ.length) renderMain(); else { document.getElementById('bar-fill').style.width = '100%'; document.getElementById('croissant').style.left = '100%'; alert("全部挑戰完畢！💙"); showMenu(); } }
+    function importQ() { 
+        try { 
+            const d = JSON.parse(document.getElementById('json-input').value); 
+            rawQ = rawQ.concat(d); 
+            alert("成功載入！別忘了點擊「保存進度」喔 💙"); 
+            toggleImport(); 
+            showMenu(); 
+            updateTotalDisplay(); // ✨ 讓數字在導入後立刻跳動
+        } catch(e) { 
+            alert("格式錯誤，請檢查 JSON 代碼！"); 
+        } 
+    }
+    function exportQ() { const b = new Blob([JSON.stringify(rawQ)], {type: "application/json"}); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = "keke_backup.json"; l.click(); }
+    function clearAll() { if(confirm("確定清空嗎？")) { localStorage.clear(); location.reload(); } }
+    function showMenu() { 
+        showUI('category-menu'); 
+        if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking; 
+        updateTotalDisplay(); // 呼叫更新數量的功能
+    }
+
+    // 額外增加這個獨立功能，確保隨時都能更新數量
+    function updateTotalDisplay() {
+        const total = (typeof rawQ !== 'undefined') ? rawQ.length : 0;
+        const menuTitle = document.querySelector('#category-menu h3'); 
+        if (menuTitle) { 
+            menuTitle.innerHTML = `周可可英語練功房 💙<br><span id="total-count-span" style="font-size:0.85rem; color:#6495ED; font-weight:normal; background:white; padding:2px 10px; border-radius:10px; border:1px dashed #6495ED; margin-top:5px; display:inline-block;">📚 目前題庫總計：${total} 題</span>`; 
+        }
+    }
+    function showUI(id) { ['category-menu', 'quiz-ui'].forEach(ui => document.getElementById(ui).style.display = ui === id ? 'block' : 'none'); }
+    function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+    function closeM(id) { document.getElementById(id).style.display = 'none'; }
+    function toggleImport() { const z = document.getElementById('import-zone'); z.style.display = z.style.display === 'none' ? 'block' : 'none'; }
+    
+    function openReviewList() {
+        document.getElementById('review-modal').style.display = 'flex'; document.getElementById('list-view').style.display = 'block'; document.getElementById('quiz-view').style.display = 'none';
+        const c = document.getElementById('mistake-list-content');
+        if (mistakes.length === 0) { c.innerHTML = "無錯題"; return; }
+        c.innerHTML = mistakes.map((m, i) => `
+            <div class="mistake-card">
+                <button class="delete-btn" onclick="mastered(${i})">🗑️ 已掌握</button>
+                <b>${i+1}. ${m.q}</b><br><small>正確：${m.o[m.a]}</small>
+            </div>`).join('');
+    }
+    function mastered(i) { mistakes.splice(i, 1); document.getElementById('wrong-count').innerText = mistakes.length; openReviewList(); }
+    function startRev() { if (mistakes.length === 0) return; revQueue = [...mistakes].sort(() => Math.random() - 0.5); revIdx = 0; document.getElementById('list-view').style.display = 'none'; document.getElementById('quiz-view').style.display = 'block'; renderRev(); }
+    function renderRev() { answered = true; const q = revQueue[revIdx]; document.getElementById('rev-q-text').innerText = q.q; const grid = document.getElementById('rev-options'); grid.innerHTML = ''; q.o.forEach((opt, i) => { const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = process(opt); b.onclick = () => { if (i === q.a) b.classList.add('correct'); else b.classList.add('wrong'); document.getElementById('rev-exp').innerText = q.e; document.getElementById('rev-feedback').style.display = 'block'; }; grid.appendChild(b); }); document.getElementById('rev-feedback').style.display = 'none'; }
+    function nextRev() { revIdx++; if (revIdx < revQueue.length) renderRev(); else { alert("複習完畢！"); openReviewList(); } }
+</script>
+</body>
+</html>
