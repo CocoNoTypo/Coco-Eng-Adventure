@@ -245,6 +245,21 @@
     function startRev() { if (mistakes.length === 0) return; revQueue = [...mistakes].sort(() => Math.random() - 0.5); revIdx = 0; document.getElementById('list-view').style.display = 'none'; document.getElementById('quiz-view').style.display = 'block'; renderRev(); }
     function renderRev() { answered = true; const q = revQueue[revIdx]; document.getElementById('rev-q-text').innerText = q.q; const grid = document.getElementById('rev-options'); grid.innerHTML = ''; q.o.forEach((opt, i) => { const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = process(opt); b.onclick = () => { if (i === q.a) b.classList.add('correct'); else b.classList.add('wrong'); document.getElementById('rev-exp').innerText = q.e; document.getElementById('rev-feedback').style.display = 'block'; }; grid.appendChild(b); }); document.getElementById('rev-feedback').style.display = 'none'; }
     function nextRev() { revIdx++; if (revIdx < revQueue.length) renderRev(); else { alert("複習完畢！"); openReviewList(); } }
+    // 自動從伺服器抓取題庫
+fetch('questions.json')
+  .then(response => response.json())
+  .then(data => {
+    // 這裡的 rawData 是你原本程式碼中用來存題庫的變數名稱
+    // 根據你截圖第 222 行，變數名稱應該是 rawData
+rawData = (typeof rawData !== 'undefined' && Array.isArray(rawData)) ? rawData.concat(data) : data;
+    
+    // 載入後更新一下總題數顯示（呼叫你原本就有的 function）
+    if (typeof updateTotalDisplay === 'function') {
+        updateTotalDisplay();
+    }
+    console.log("題庫已自動更新！");
+  })
+  .catch(error => console.error("載入題庫失敗:", error));
 </script>
 </body>
 </html>
