@@ -488,43 +488,12 @@ function startMistakeQuiz() {
             }; r.readAsDataURL(f);
         }
     }
-// --- V2 專用：本地齒輪安全匯入函數（語法修正版） ---
-function importQ() {
-    try {
-        const inputArea = document.getElementById('json-input');
-        if (!inputArea || !inputArea.value.trim()) return alert("請輸入題庫 JSON！");
-
-        // 1. 解析並容錯處理 JSON 格式
-        const newData = JSON.parse(inputArea.value.replace(/,\s*([\]}])/g, '$1'));
-        
-        // 2. 讀取目前已存在的本地沙盒題庫
-        let localRaw = JSON.parse(localStorage.getItem('kekeRawQ') || '[]');
-        
-        // 3. 建立本地去重 Map (修正：移除原先多餘的 m => 錯誤)
-        const localMap = new Map();
-        localRaw.forEach(q => {
-            const key = q.id || q.q;
-            localMap.set(key, q);
-        });
-        
-        // 4. 將新輸入的題目疊加進沙盒 (若 ID 重複則覆蓋更新，若全新則追加)
-        let newCount = 0;
-        newData.forEach(q => {
-            const key = q.id || q.q;
-            localMap.set(key, q);
-            newCount++;
-        });
-        
-        // 5. 儲存回本地沙盒
-        localStorage.setItem('kekeRawQ', JSON.stringify(Array.from(localMap.values())));
-        
-        alert(`成功處理 ${newCount} 題自訂題庫！網頁即將重整更新 💙`);
-        location.reload();
-    } catch(e) {
-        alert("格式錯誤！請檢查 JSON 括號與逗號是否正確。");
-        console.error(e);
+    function importQ() {
+        try {
+            const d = JSON.parse(document.getElementById('json-input').value.replace(/,\s*([\]}])/g, '$1'));
+            rawQ = rawQ.concat(d); saveData(); alert("匯入成功！"); location.reload();
+        } catch(e) { alert("格式錯誤！"); }
     }
-}
     function clearAll() { if(confirm("重置所有數據嗎？")) { localStorage.clear(); location.reload(); } }
     function saveData() { localStorage.setItem('kekeRawQ', JSON.stringify(rawQ)); localStorage.setItem('kekeAssets', JSON.stringify(assets)); localStorage.setItem('kekeMistakes', JSON.stringify(mistakes)); }
 function updateTotalDisplay() {
@@ -556,4 +525,3 @@ function removeMistake(targetId) {
 
 </body>
 </html>
-
