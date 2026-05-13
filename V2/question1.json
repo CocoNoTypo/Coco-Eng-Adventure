@@ -1,0 +1,74 @@
+[
+  {
+    "id": "RC-2026-001",
+    "cat": "Reading Comprehension",
+    "article": "Coco the penguin loves exploring new places. Today, he is going on a [[special|特別的]] adventure to the magic forest.",
+    "q": "Where is Coco going today?",
+    "o": ["To school", "To the magic forest", "To the market", "To sleep"],
+    "a": 1,
+    "e": "根據文章內容 'he is going on a special adventure to the magic forest'，正確答案為 B。"
+  },
+  {
+    "id": "RC-2026-002",
+    "cat": "Reading Comprehension",
+    "article": "The golden key was hidden under an old oak tree. Many people tried to find it, but only Coco knew the [[secret|秘密]].",
+    "q": "What was hidden under the old oak tree?",
+    "o": ["A golden key", "A magic book", "A box of chocolates", "A little puppy"],
+    "a": 0,
+    "e": "文章第一句指出 'The golden key was hidden under an old oak tree'，因此隱藏的是金鑰匙。"
+  },
+  {
+    "id": "EC-2026-001",
+    "cat": "Error Correction",
+    "article": "",
+    "q": "Identify the mistake in the sentence: She [[don't|doesn't]] like playing video games after school.",
+    "o": ["She", "don't", "like", "playing"],
+    "a": 1,
+    "e": "第三人稱單數主詞 She 的否定句助動詞應該使用 doesn't，使用 don't 是語法錯誤。"
+  },
+  {
+    "id": "EC-2026-002",
+    "cat": "Error Correction",
+    "article": "",
+    "q": "Identify the mistake in the sentence: Every morning, my father [[is drinking|drinks]] a cup of hot coffee.",
+    "o": ["Every morning", "my father", "is drinking", "hot coffee"],
+    "a": 2,
+    "e": "當句子開頭有 'Every morning' 表示習慣性的規律動作時，應使用現在簡單式 drinks，而非現在進行式。"
+  },
+  {
+    "id": "SC-2026-001",
+    "cat": "Sentence Completion",
+    "article": "",
+    "q": "If it rains tomorrow, we ________ the school picnic.",
+    "o": ["will cancel", "canceled", "canceling", "would cancel"],
+    "a": 0,
+    "e": "這是第一類條件句（表示未來的真實情況），結構為 'If + 現在簡單式, 主句 + will + 原型動詞'。"
+  },
+  {
+    "id": "SC-2026-002",
+    "cat": "Sentence Completion",
+    "article": "",
+    "q": "Coco is very [[intelligent|聰明的]]; ________, he always gets full marks in English tests.",
+    "o": ["however", "therefore", "although", "but"],
+    "a": 1,
+    "e": "前後文為因果關係（因為聰明，所以拿滿分），應使用表示「因此」的副詞 therefore。"
+  },
+  {
+    "id": "PI-2026-001",
+    "cat": "Paragraph Improvement",
+    "article": "[1] Modern technology makes our lives much easier. [2] For example, smartphones allow us to communicate instantly. [3] However, tigers are endangered animals. [4] We must use devices wisely to avoid wasting time.",
+    "q": "Which sentence should be removed from the paragraph to keep the focus?",
+    "o": ["Sentence 1", "Sentence 2", "Sentence 3", "Sentence 4"],
+    "a": 2,
+    "e": "整段文章都在討論現代科技與裝置對生活的影響，第 [3] 句突然提到老虎是瀕危動物，與主題毫無關聯，應予刪除。"
+  },
+  {
+    "id": "PI-2026-002",
+    "cat": "Paragraph Improvement",
+    "article": "[1] Learning a new language takes time and patience. [2] You should practice speaking every day. [3] Furthermore, reading simple stories can expand your vocabulary.",
+    "q": "What is the best way to combine Sentence 2 and Sentence 3 using a transition phrase?",
+    "o": ["In contrast", "Not only should you practice speaking, but you can also read stories", "On the other hand", "Practice speaking because reading stories is bad"],
+    "a": 1,
+    "e": "第 2 句和第 3 句是遞進與並列的學習方法，使用 'Not only... but also...' (不僅...而且...) 能最完美、自然地整合這兩個句子。"
+  }
+]
