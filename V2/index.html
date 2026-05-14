@@ -222,27 +222,10 @@ window.onload = () => {
         if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
     }
 
-    // --- 外科手術式追加：回復中斷的答題進度 ---
-    let hasSavedProgress = false; // 建立進度鎖
-    const savedFilteredQ = localStorage.getItem('kekeFilteredQ');
-    const savedMainIdx = localStorage.getItem('kekeMainIdx');
-    if (savedFilteredQ && savedMainIdx !== null) {
-        filteredQ = JSON.parse(savedFilteredQ);
-        mainIdx = parseInt(savedMainIdx, 10);
-        
-        // 如果有中斷的進度且尚未做完，直接載入答題 UI
-        if (filteredQ.length > 0 && mainIdx < filteredQ.length) {
-            showUI('quiz-ui');
-            renderMain();
-            hasSavedProgress = true; // 鎖定狀態：當前有正在進行的進度
-        }
-    }
-
     updateTotalDisplay();
 
     // 2. 最乾淨的背景自動匯入：直接解析物件並寫入本機
-    // 安全防線：只有當前沒有未完成的答題進度時，才允許背景同步，徹底避免異步覆蓋衝突
-    if (CLOUD_JSON_URL && !hasSavedProgress) {
+    if (CLOUD_JSON_URL) {
         fetch(CLOUD_JSON_URL)
             .then(response => {
                 if (!response.ok) throw new Error('網路回應不成功');
@@ -275,6 +258,7 @@ window.onload = () => {
             });
     }
 };
+
     function process(t) {
         if (!t) return "";
         if (!answered) return t.replace(/\[\[(.*?)\|(.*?)\]\]/g, '$1');
@@ -509,9 +493,33 @@ function startMistakeQuiz() {
 }
 function updateTotalDisplay() {
     const titleElement = document.getElementById('menu-title');
-    // 將「總題數」改為 "Total Questions"，並調整樣式以對齊範疇按鈕
+    // 嚴格維持原樣：將「總題數」改為 "Total Questions"，並調整樣式以對齊範疇按鈕
     titleElement.innerHTML = `COCO Adventure<br><small style="font-size: 0.9rem; font-weight: 900; font-family: 'Microsoft JhengHei', sans-serif; opacity: 0.8;">📚 Total Questions: ${rawQ.length}</small>`;
     document.getElementById('wrong-count').innerText = mistakes.length;
+
+    // --- 外科手術式追加：在網頁骨架安全加載後的最後一秒，執行進度無縫還原 ---
+    // 使用一組獨立的、僅執行一次的計時器，徹底繞過 window.onload 的載入時間差衝突
+    if (!window.hasRestoredProgressDone) {
+        window.hasRestoredProgressDone = true; // 設定全域一次性安全鎖，防止無限循環
+        
+        setTimeout(() => {
+            const savedFilteredQ = localStorage.getItem('kekeFilteredQ');
+            const savedMainIdx = localStorage.getItem('kekeMainIdx');
+            if (savedFilteredQ && savedMainIdx !== null) {
+                const checkFilteredQ = JSON.parse(savedFilteredQ);
+                const checkMainIdx = parseInt(savedMainIdx, 10);
+                
+                // 雙重安全驗證：確保有進度，且進度還沒做完
+                if (checkFilteredQ.length > 0 && checkMainIdx < checkFilteredQ.length) {
+                    filteredQ = checkFilteredQ;
+                    mainIdx = checkMainIdx;
+                    showUI('quiz-ui');
+                    renderMain();
+                    console.log(`[進度回復成功]：完美回到第 ${mainIdx + 1} 題。`);
+                }
+            }
+        }, 100); // 延遲 100 毫秒，等全網頁 DOM 樹與外觀樣式 100% 穩定就位
+    }
 }
 function removeMistake(i) {
     // 1. 從陣列中移除選定的錯題
