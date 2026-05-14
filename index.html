@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍪 COCO Adventure 🍪</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet">
+<!-- 網頁版無黑邊 Emoji 專用字體庫引入 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="googleapis.com" rel="stylesheet">
 
     <style>
         :root { --shengmi-blue: #6495ED; --panel-bg: rgba(245, 250, 255, 0.95); }
@@ -115,11 +119,7 @@
     right: -15px;
     top: -10px;
     font-size: 24px;
-    /* 網頁版黑邊邊緣柔化濾鏡：精確遮蓋微軟字體內建的黑色硬邊，使其在網頁版上極致柔和乾淨 */
-    filter: drop-shadow(1px 0px 0.4px #fff) 
-            drop-shadow(-1px 0px 0.4px #fff) 
-            drop-shadow(0px 1px 0.4px #fff) 
-            drop-shadow(0px -1px 0.4px #fff);
+    filter: drop-shadow(1px 0px 0.4px #fff) ...
     animation: croissant-shake 2s ease-in-out infinite;
     display: inline-block;
     font-weight: normal !important;
