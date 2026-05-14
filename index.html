@@ -119,12 +119,17 @@
     right: -15px;
     top: -10px;
     font-size: 24px;
-    filter: drop-shadow(1px 0px 0.4px #fff) ...
+    filter: none;
     animation: croissant-shake 2s ease-in-out infinite;
     display: inline-block;
+    /* --- 強制解鎖 Windows 瀏覽器機制：將無黑邊字體提至第一順位，徹底蓋掉微軟 Segoe --- */
+    font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif !important;
     font-weight: normal !important;
     text-shadow: none !important;
     -webkit-text-stroke: 0px transparent !important;
+    /* 關閉 Windows 的字體描邊與平滑優化干擾，讓 COLRv1 向量色彩無失真渲染 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
     </style>
 </head>
