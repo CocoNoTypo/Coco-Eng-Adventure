@@ -212,7 +212,7 @@ let rawQ = [], filteredQ = [], mistakes = [], mainIdx = 0, answered = false;
 let assets = { thinking: "", happy: "", mistake: "", bg: "" };
 
 window.onload = () => {
-    // 1. 優先加載本地現有數據與資產，確保網頁光速開啟
+    // 1. 優先加載本地現有數據與資產（嚴格保持原有功能）
     rawQ = JSON.parse(localStorage.getItem('kekeRawQ') || '[]');
     mistakes = JSON.parse(localStorage.getItem('kekeMistakes') || '[]');
     const sa = localStorage.getItem('kekeAssets');
@@ -223,7 +223,7 @@ window.onload = () => {
     }
     updateTotalDisplay();
 
-    // 2. 自動主動從雲端匯入題庫（完美相容 ID 鍵值對物件結構）
+    // 2. 最乾淨的背景自動匯入：直接解析物件並寫入本機
     if (CLOUD_JSON_URL) {
         fetch(CLOUD_JSON_URL)
             .then(response => {
@@ -231,45 +231,37 @@ window.onload = () => {
                 return response.json();
             })
             .then(cloudData => {
-                // 檢查是否為合法物件，以適應您的 ID 鍵值對設計
-                if (cloudData && typeof cloudData === 'object' && !Array.isArray(cloudData)) {
-                    // 收集目前本地 rawQ 中所有已存在題目的 id 與文字 q
-                    const existingIds = new Set(rawQ.map(item => item.id).filter(id => id));
-                    const existingQs = new Set(rawQ.map(item => item.q));
-                    let newCount = 0;
+                // 確保雲端資料存在
+                if (cloudData && typeof cloudData === 'object') {
+                    let isUpdated = false;
 
-                    // 逐一歷遍雲端 JSON 物件中的每一個 ID 鍵名（如 RC-2026-001）
+                    // 歷遍雲端 JSON 物件中的每一個唯一 ID 鍵名
                     for (const id in cloudData) {
-                        if (cloudData.hasOwnProperty(id)) {
-                            const questionItem = cloudData[id];
-                            
-                            // 將 ID 屬性寫入題目物件內部，方便未來本地比對去重
+                        const questionItem = cloudData[id];
+                        if (questionItem && questionItem.q) {
+                            // 將 ID 精準寫入題目內部
                             questionItem.id = id; 
 
-                            // 精準雙重去重檢查：如果本地沒有這個 ID 且沒有相同的題目內文
-                            if (!existingIds.has(id) && !existingQs.has(questionItem.q)) {
+                            // 精準去重檢查：如果本地還沒有這題文字，就塞入 rawQ
+                            if (!rawQ.some(item => item.q === questionItem.q || item.id === id)) {
                                 rawQ.push(questionItem);
-                                newCount++;
+                                isUpdated = true;
                             }
                         }
                     }
 
-                    // 如果有新題目匯入，立刻儲存並即時更新主介面總題數
-                    if (newCount > 0) {
+                    // 核心修正：只要本地資料有更新，就立刻寫入儲存並重繪畫面，不需要手動按鈕
+                    if (isUpdated) {
                         saveData();
                         updateTotalDisplay();
-                        console.log(`[自動匯入] 成功從雲端同步了 ${newCount} 題新題目！`);
-                    } else {
-                        console.log('[自動匯入] 題庫已是最新狀態，無需重複匯入。');
                     }
                 }
             })
             .catch(error => {
-                console.error('[自動匯入失敗] 無法從雲端獲取題庫：', error);
+                console.error('[自動匯入失敗]：', error);
             });
     }
 };
-
 
     function process(t) {
         if (!t) return "";
