@@ -12,8 +12,13 @@
     color: var(--shengmi-blue);
     font-weight: 800;
     font-family: 'Baloo 2', cursive;
-    font-size: 2.2rem;
-    margin: 10px 0;
+    /* 極致響應式：手機端更敏銳地根據視窗 7.5vw 縮放，保底 1.4rem，最大 2.2rem */
+    font-size: clamp(1.4rem, 7.5vw, 2.2rem);
+    margin: 10px auto;
+    display: inline-block;
+    max-width: 100%;
+    word-break: keep-all;
+    text-align: center;
 }
         body { font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px; background-size: cover; background-position: center; background-attachment: fixed; margin: 0; background-color: #f0f4f8; transition: 0.3s; }
         #main-container { background: var(--panel-bg); width: 92%; max-width: 650px; padding: 25px; border-radius: 40px; border: 4px dashed var(--shengmi-blue); box-shadow: 0 15px 35px rgba(100,149,237,0.15); text-align: center; margin-top: 15px; position: relative; }
@@ -107,20 +112,16 @@
 /* --- 優化 1.1 & 1.2：移除黑邊並加入晃動動畫 --- */
 .croissant-icon {
     position: absolute;
-    right: -15px; 
+    right: -15px;
     top: -10px;
     font-size: 24px;
-    /* 1. 移除黑邊：將原有的 drop-shadow 濾鏡移除或改為極淡的發光 */
-    filter: none; 
-    /* 2. 增加晃動動畫：調用下方定義的 shake 效果 */
+    filter: none;
     animation: croissant-shake 2s ease-in-out infinite;
     display: inline-block;
-}
-
-/* 定義晃動動畫 (如舊版效果) */
-@keyframes croissant-shake {
-    0%, 100% { transform: rotate(-10deg); }
-    50% { transform: rotate(15deg); }
+    /* --- 網頁版黑邊特效淨化 --- */
+    font-weight: normal !important;        /* 解除網頁版重黑體對 Emoji 的加粗黑邊干擾 */
+    text-shadow: none !important;          /* 消除可能殘留的任何投影 */
+    -webkit-text-stroke: 0px transparent !important; /* 確保瀏覽器無外加描邊 */
 }
     </style>
 </head>
