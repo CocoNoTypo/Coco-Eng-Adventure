@@ -264,11 +264,15 @@ window.onload = () => {
                             }
                         }
                     }
-
-                    // 核心修正：只要本地資料有更新，就立刻寫入儲存並重繪畫面，不需要手動按鈕
                     if (isUpdated) {
-                        saveData();
-                        updateTotalDisplay();
+                        // 【外科技術修正點】：嚴格只單獨儲存題庫核心數據
+                        localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
+                        
+                        // 檢查當前畫面是不是已經因為進度恢復而進入了答題區（quiz-ui）
+                        // 如果已經在答題區，代表進度正在運行，不可盲目呼叫可能干擾畫面的全域重繪
+                        if (document.getElementById('quiz-ui').style.display !== 'block') {
+                            updateTotalDisplay();
+                        }
                     }
                 }
             })
@@ -276,7 +280,6 @@ window.onload = () => {
                 console.error('[自動匯入失敗]：', error);
             });
     }
-};
 
     function process(t) {
         if (!t) return "";
