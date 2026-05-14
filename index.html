@@ -115,13 +115,16 @@
     right: -15px;
     top: -10px;
     font-size: 24px;
-    filter: none;
+    /* 網頁版黑邊邊緣柔化濾鏡：精確遮蓋微軟字體內建的黑色硬邊，使其在網頁版上極致柔和乾淨 */
+    filter: drop-shadow(1px 0px 0.4px #fff) 
+            drop-shadow(-1px 0px 0.4px #fff) 
+            drop-shadow(0px 1px 0.4px #fff) 
+            drop-shadow(0px -1px 0.4px #fff);
     animation: croissant-shake 2s ease-in-out infinite;
     display: inline-block;
-    /* --- 網頁版黑邊特效淨化 --- */
-    font-weight: normal !important;        /* 解除網頁版重黑體對 Emoji 的加粗黑邊干擾 */
-    text-shadow: none !important;          /* 消除可能殘留的任何投影 */
-    -webkit-text-stroke: 0px transparent !important; /* 確保瀏覽器無外加描邊 */
+    font-weight: normal !important;
+    text-shadow: none !important;
+    -webkit-text-stroke: 0px transparent !important;
 }
     </style>
 </head>
