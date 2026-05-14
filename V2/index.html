@@ -221,6 +221,21 @@ window.onload = () => {
         if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`;
         if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
     }
+    
+    // --- 外科手術式追加：回復中斷的答題進度 ---
+    const savedFilteredQ = localStorage.getItem('kekeFilteredQ');
+    const savedMainIdx = localStorage.getItem('kekeMainIdx');
+    if (savedFilteredQ && savedMainIdx !== null) {
+        filteredQ = JSON.parse(savedFilteredQ);
+        mainIdx = parseInt(savedMainIdx, 10);
+        
+        // 如果有中斷的進度且尚未做完，直接載入答題 UI
+        if (filteredQ.length > 0 && mainIdx < filteredQ.length) {
+            showUI('quiz-ui');
+            renderMain();
+        }
+    }
+
     updateTotalDisplay();
 
     // 2. 最乾淨的背景自動匯入：直接解析物件並寫入本機
@@ -451,9 +466,16 @@ function startMistakeQuiz() {
         mc.innerHTML = v.map(i => `<div class="vocab-card"><strong>${i.w}</strong><br><small>${i.m}</small><span style="position:absolute; right:10px; bottom:5px; font-size:0.6rem; color:#ccc;">${i.d}</span></div>`).join('') || "尚無收藏";
         document.getElementById('review-modal').style.display = 'flex';
     }
-
-    function goNext() { mainIdx++; if (mainIdx < filteredQ.length) renderMain(); else showMenu(); }
-    function showMenu() { showUI('category-menu'); if(assets.thinking) document.getElementById('menu-keke').src = assets.thinking; updateTotalDisplay(); }
+    function goNext() {
+    mainIdx++;
+    if (mainIdx < filteredQ.length) renderMain();
+    else showMenu();
+}
+    function showMenu() {
+    showUI('category-menu');
+    if(assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
+    updateTotalDisplay();
+}
     function showUI(id) { ['category-menu', 'quiz-ui'].forEach(u => document.getElementById(u).style.display = (u === id ? 'block' : 'none')); }
     function toggleImport() {
     const z = document.getElementById('import-zone');
@@ -480,7 +502,14 @@ function startMistakeQuiz() {
         } catch(e) { alert("格式錯誤！"); }
     }
     function clearAll() { if(confirm("重置所有數據嗎？")) { localStorage.clear(); location.reload(); } }
-    function saveData() { localStorage.setItem('kekeRawQ', JSON.stringify(rawQ)); localStorage.setItem('kekeAssets', JSON.stringify(assets)); localStorage.setItem('kekeMistakes', JSON.stringify(mistakes)); }
+    function saveData() {
+    localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
+    localStorage.setItem('kekeAssets', JSON.stringify(assets));
+    localStorage.setItem('kekeMistakes', JSON.stringify(mistakes));
+    // --- 外科手術式追加：儲存答題進度與當前範疇題目 ---
+    localStorage.setItem('kekeMainIdx', mainIdx);
+    localStorage.setItem('kekeFilteredQ', JSON.stringify(filteredQ));
+}
 function updateTotalDisplay() {
     const titleElement = document.getElementById('menu-title');
     // 將「總題數」改為 "Total Questions"，並調整樣式以對齊範疇按鈕
