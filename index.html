@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💙 COCO Adventure 💙</title>
+    <title>🍪 COCO Adventure 🍪</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet">
 
     <style>
@@ -141,7 +141,7 @@
 
     <div id="category-menu">
         <div style="height:150px; display:flex; align-items:center; justify-content:center;"><img id="menu-keke" style="max-height:100%;" src="" alt=" "></div>
-        <h3 id="menu-title">💙 COCO Adventure 💙</h3>
+        <h3 id="menu-title">🍪 COCO Adventure 🍪</h3>
 <div class="category-grid">
     <button class="cat-btn" onclick="startCat('Reading Comprehension')">Reading Comprehension</button>
     <button class="cat-btn" onclick="startCat('Error Correction')">Error Correction</button>
@@ -204,75 +204,60 @@
 
 
 <script>
-    let rawQ = [], filteredQ = [], mistakes = [], mainIdx = 0, answered = false;
-    let assets = { thinking: "", happy: "", mistake: "", bg: "" };
 
-// --- V2 步驟三：雲端異步疊加與防重沙盒機制 ---
-window.onload = async () => {
-    // 1. 讀取本地裝修資產
+// --- 新增：雲端題庫存取網址 ---
+const CLOUD_JSON_URL = 'https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/questions.json'; 
+
+let rawQ = [], filteredQ = [], mistakes = [], mainIdx = 0, answered = false;
+let assets = { thinking: "", happy: "", mistake: "", bg: "" };
+
+window.onload = () => {
+    // 1. 優先加載本地現有數據與資產（嚴格保持原有功能）
+    rawQ = JSON.parse(localStorage.getItem('kekeRawQ') || '[]');
+    mistakes = JSON.parse(localStorage.getItem('kekeMistakes') || '[]');
     const sa = localStorage.getItem('kekeAssets');
     if (sa) {
         assets = JSON.parse(sa);
         if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`;
-        if (assets.thinking && document.getElementById('menu-keke')) {
-            document.getElementById('menu-keke').src = assets.thinking;
-        }
-    }
-    
-    // 2. 讀取本地錯題本（此處維持舊版，將在步驟五升級去耦合）
-    mistakes = JSON.parse(localStorage.getItem('kekeMistakes') || '[]');
-
-    // 3. 異步抓取 GitHub 雲端題庫
-    let cloudQuestions = [];
-    try {
-        // 先抓取清單索引檔 (使用相對路徑，完全相容 GitHub 環境)
-        const manifestRes = await fetch('./manifest.json');
-        if (manifestRes.ok) {
-            const fileList = await manifestRes.json();
-            // 遍歷清單中的所有 JSON 檔案進行疊加
-            for (const fileName of fileList) {
-                try {
-                    const qRes = await fetch(`./${fileName}`);
-                    if (qRes.ok) {
-                        const qData = await qRes.json();
-                        cloudQuestions = cloudQuestions.concat(qData);
-                    }
-                } catch (fileErr) {
-                    console.error(`加載雲端檔案 ${fileName} 失敗:`, fileErr);
-                }
-            }
-        }
-    } catch (err) {
-        console.error("無法連線至雲端清單，將啟用純本地模式:", err);
+        if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
     }
 
-    // 4. 讀取本地齒輪匯入的自訂沙盒題庫
-    const localRaw = JSON.parse(localStorage.getItem('kekeRawQ') || '[]');
-
-    // 5. 雙線數據合併與自動去重核心 (以雲端 id 為尊，若無 id 則以題目文字去重)
-    const uniqueMap = new Map();
-    
-    // 先寫入雲端題目
-    cloudQuestions.forEach(q => {
-        const key = q.id || q.q;
-        uniqueMap.set(key, q);
-    });
-    
-    // 再寫入本地自訂題目 (若 id 或題目文字重複，將會自動過濾或更新)
-    localRaw.forEach(q => {
-        const key = q.id || q.q;
-        if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, q);
-        }
-    });
-
-    // 6. 將最終無重複的完整題庫交付給全局變數 rawQ
-    rawQ = Array.from(uniqueMap.values());
-
-    // 7. 更新介面顯示
     updateTotalDisplay();
-};
 
+    // 2. 最乾淨的背景自動匯入：直接解析物件並寫入本機
+    if (CLOUD_JSON_URL) {
+        fetch(CLOUD_JSON_URL)
+            .then(response => {
+                if (!response.ok) throw new Error('網路回應不成功');
+                return response.json();
+            })
+            .then(cloudData => {
+                if (cloudData && typeof cloudData === 'object') {
+                    let isUpdated = false;
+
+                    for (const id in cloudData) {
+                        const questionItem = cloudData[id];
+                        if (questionItem && questionItem.q) {
+                            questionItem.id = id; 
+
+                            if (!rawQ.some(item => item.q === questionItem.q || item.id === id)) {
+                                rawQ.push(questionItem);
+                                isUpdated = true;
+                            }
+                        }
+                    }
+
+                    if (isUpdated) {
+                        localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
+                        updateTotalDisplay();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('[自動匯入失敗]：', error);
+            });
+    }
+};
 
     function process(t) {
         if (!t) return "";
@@ -344,12 +329,8 @@ function startCat(cat) {
                 else { 
                     b.classList.add('wrong'); grid.children[q.a].classList.add('correct'); 
                     document.getElementById('main-keke').src = assets.mistake || ""; 
-                   const qId = q.id || q.q;
-if (!mistakes.includes(qId)) {
-    mistakes.push(qId);
-    saveData();
-}
-
+                    if(!mistakes.some(m => m.q === q.q)) { mistakes.push(q); saveData(); }
+                }
                 document.getElementById('exp-text').innerText = q.e;
                 document.getElementById('feedback-area').style.display = 'block';
                 art.innerHTML = q.article ? process(q.article) : ""; // 更新帶翻譯的文章
@@ -361,8 +342,8 @@ if (!mistakes.includes(qId)) {
         document.getElementById('feedback-area').style.display = 'none';
     }
 
-// --- V2 步驟五：錯題本去耦合——渲染介面 ---
 function openReviewList() {
+    // 1. 根據圖片修改標題
     document.getElementById('modal-title').innerText = "📖周可可的錯題筆記";
     document.getElementById('rev-quiz-zone').style.display = "none";
     const mc = document.getElementById('modal-content');
@@ -373,64 +354,59 @@ function openReviewList() {
         return;
     }
 
-    // 1. 透過儲存的 id 陣列，去全局題庫 rawQ 找出對應的完整題目物件
-    const activeMistakes = mistakes.map(id => {
-        return rawQ.find(q => (q.id === id || q.q === id));
-    }).filter(q => q !== undefined); // 過濾掉找不到的無效題目
-
-    // 2. 渲染筆記風卡片列表
+    // 整合優化 4.1 (紅框筆記風), 4.2 (按鈕下移), 4.3 (綠色勾勾)
     mc.innerHTML = `
-    <div style="max-height:400px; overflow-y:auto; padding:10px;">
-        ${activeMistakes.map((m) => {
-            const currentId = m.id || m.q;
-            return `
-            <div class="mistake-card" style="border: 1px solid #ffcfcf; border-left: 8px solid #ef5350; background: #fffafb; position: relative; padding: 15px 20px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(239,83,80,0.05);">
-                <!-- 已掌握按鈕：傳遞唯一 id 進行精確刪除 -->
-                <button class="mastered-btn" onclick="removeMistake('${currentId}')" style="background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); color: white; border: 2px solid #ffffff; font-size: 0.9rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 10px; position: absolute; top: 12px; right: 12px; cursor: pointer; box-shadow: 0 4px 8px rgba(67,160,71,0.3); font-weight: 900;">✓</button>
-                <div style="font-size: 1.05rem; font-weight: 800; color: #d32f2f; margin-bottom: 8px; padding-right: 35px; line-height: 1.5;">
-                    [${m.cat}] ${m.q}
+        <div style="max-height:400px; overflow-y:auto; padding:10px;">
+            ${mistakes.map((m, i) => `
+                <div class="mistake-card" style="border: 1px solid #ffcfcf; border-left: 8px solid #ef5350; background: #fffafb; position: relative; padding: 15px 20px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(239,83,80,0.05);">
+                    <!-- 4.3 已掌握按鈕：綠色勾勾方塊 -->
+<!-- 4.3 優化後的精緻綠色勾勾按鈕 -->
+<button class="mastered-btn" onclick="removeMistake(${i})" style="background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); color: white; border: 2px solid #ffffff; font-size: 0.9rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 10px; position: absolute; top: 12px; right: 12px; cursor: pointer; box-shadow: 0 4px 8px rgba(67,160,71,0.3); font-weight: 900;">✓</button>
+
+                    <!-- 1. 題目：紅色粗體 -->
+                    <div style="font-size: 1.05rem; font-weight: 800; color: #d32f2f; margin-bottom: 8px; padding-right: 35px; line-height: 1.5;">
+                        ${i+1}. ${m.q}
+                    </div>
+                    
+                    <!-- 1. 正確答案：藍色 -->
+                    <div style="color: #1976d2; font-size: 0.95rem; font-weight: 700;">
+                        正確：${m.o[m.a]}
+                    </div>
                 </div>
-                <div style="color: #1976d2; font-size: 0.95rem; font-weight: 700;">
-                    正確：${m.o[m.a]}
-                </div>
-            </div>
-            `;
-        }).join('')}
-    </div>
-    <button class="nav-btn" style="width:100%; margin-top:15px; background:#448aff; color:#fff; border:none; border-radius:30px; padding:12px; font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="startMistakeQuiz()">
-        <span style="font-size:1.2rem;">🎯</span> 隨機練習
-    </button>
+            `).join('')}
+        </div>
+        <!-- 4.2 底部按鈕：藍色圓角矩形 -->
+        <button class="nav-btn" style="width:100%; margin-top:15px; background:#448aff; color:#fff; border:none; border-radius:30px; padding:12px; font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="startMistakeQuiz()">
+            <span style="font-size:1.2rem;">🎯</span> 隨機練習
+        </button>
     `;
-    
     document.getElementById('review-modal').style.display = 'flex';
 }
 
-// --- V2 步驟五：錯題本去耦合——隨機練習挑戰 ---
+
 function startMistakeQuiz() {
-    // 1. 將存儲的 id 還原為題庫物件
-    const activeMistakes = mistakes.map(id => rawQ.find(q => (q.id === id || q.q === id))).filter(q => q !== undefined);
-    if(activeMistakes.length === 0) return;
-    
+    if(mistakes.length === 0) return;
     document.getElementById('modal-content').style.display = "none";
     const rz = document.getElementById('rev-quiz-zone');
     rz.style.display = "block";
     
-    // 2. 隨機抽選一題
-    let q = activeMistakes[Math.floor(Math.random() * activeMistakes.length)];
-    let revAnswered = false; 
-    
+    let q = mistakes[Math.floor(Math.random() * mistakes.length)];
+    let revAnswered = false; // 獨立的答題鎖定
+
+    // 1. 建立基礎結構 (包含圖片空間)
     rz.innerHTML = `
-    <div style="height:120px; display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
-        <img id="rev-keke" style="max-height:100%;" src="${assets.thinking || ''}" alt=" ">
-    </div>
-    <div class="question-box" style="font-size:1rem; border-style:solid;">${process(q.q)}</div>
-    <div id="rev-options-container"></div>
-    <div id="rev-feedback" style="display:none; padding:15px; border-radius:20px; background:rgba(100,149,237,0.1); border-left:8px solid var(--shengmi-blue); margin-top:10px; text-align:left;">
-        <div id="rev-exp-content" style="font-weight:700; white-space:pre-wrap; font-size:0.9rem;"></div>
-        <button class="nav-btn" style="width:100%; margin-top:15px; background:var(--shengmi-blue); color:white; border-style:solid;" onclick="startMistakeQuiz()">下一題 ➔</button>
-    </div>
+        <div style="height:120px; display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
+            <img id="rev-keke" style="max-height:100%;" src="${assets.thinking || ''}" alt=" ">
+        </div>
+        <div class="question-box" style="font-size:1rem; border-style:solid;">${process(q.q)}</div>
+        <div id="rev-options-container"></div>
+        <div id="rev-feedback" style="display:none; padding:15px; border-radius:20px; background:rgba(100,149,237,0.1); border-left:8px solid var(--shengmi-blue); margin-top:10px; text-align:left;">
+            <div id="rev-exp-content" style="font-weight:700; white-space:pre-wrap; font-size:0.9rem;"></div>
+            <button class="nav-btn" style="width:100%; margin-top:15px; background:var(--shengmi-blue); color:white; border-style:solid;" onclick="startMistakeQuiz()">下一題 ➔</button>
+        </div>
     `;
-    
+
+    // 2. 動態生成按鈕並直接綁定事件 (最保險的做法)
     const container = document.getElementById('rev-options-container');
     q.o.forEach((opt, i) => {
         const btn = document.createElement('button');
@@ -439,26 +415,29 @@ function startMistakeQuiz() {
         btn.onclick = function() {
             if (revAnswered) return;
             revAnswered = true;
+            
             const allBtns = container.getElementsByClassName('opt-btn');
             const revKeke = document.getElementById('rev-keke');
+            
             if (i === q.a) {
                 btn.classList.add('correct');
                 if(assets.happy) revKeke.src = assets.happy;
             } else {
                 btn.classList.add('wrong');
-                allBtns[q.a].classList.add('correct');
+                allBtns[q.a].classList.add('correct'); // 顯示正確答案
                 if(assets.mistake) revKeke.src = assets.mistake;
             }
+            
+            const f = document.getElementById('rev-feedback');
             document.getElementById('rev-exp-content').innerHTML = `<b>【解析】</b><br>${q.e}`;
-            document.getElementById('rev-feedback').style.display = "block";
+            f.style.display = "block";
         };
         container.appendChild(btn);
     });
 }
 
-
     function openVocabList() {
-        document.getElementById('modal-title').innerText = "📝 周可可生字簿";
+        document.getElementById('modal-title').innerText = "📝 精緻生字簿";
         document.getElementById('rev-quiz-zone').style.display = "none";
         const mc = document.getElementById('modal-content');
         mc.style.display = "block";
@@ -466,9 +445,27 @@ function startMistakeQuiz() {
         mc.innerHTML = v.map(i => `<div class="vocab-card"><strong>${i.w}</strong><br><small>${i.m}</small><span style="position:absolute; right:10px; bottom:5px; font-size:0.6rem; color:#ccc;">${i.d}</span></div>`).join('') || "尚無收藏";
         document.getElementById('review-modal').style.display = 'flex';
     }
+function goNext() {
+    mainIdx++;
+    saveData(); // 外科手術式追加：前進下一題時，立刻將最新題號寫入儲存空間
+    if (mainIdx < filteredQ.length) {
+        renderMain();
+    } else {
+        showMenu();
+    }
+}
 
-    function goNext() { mainIdx++; if (mainIdx < filteredQ.length) renderMain(); else showMenu(); }
-    function showMenu() { showUI('category-menu'); if(assets.thinking) document.getElementById('menu-keke').src = assets.thinking; updateTotalDisplay(); }
+function showMenu() {
+    showUI('category-menu');
+    // 外科手術式追加：回到目錄代表本輪已結束，清空此範疇的進度暫存，防止干擾下次抽題
+    filteredQ = [];
+    mainIdx = 0;
+    localStorage.removeItem('kekeFilteredQ');
+    localStorage.removeItem('kekeMainIdx');
+    
+    if(assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
+    updateTotalDisplay();
+}
     function showUI(id) { ['category-menu', 'quiz-ui'].forEach(u => document.getElementById(u).style.display = (u === id ? 'block' : 'none')); }
     function toggleImport() {
     const z = document.getElementById('import-zone');
@@ -495,24 +492,53 @@ function startMistakeQuiz() {
         } catch(e) { alert("格式錯誤！"); }
     }
     function clearAll() { if(confirm("重置所有數據嗎？")) { localStorage.clear(); location.reload(); } }
-    function saveData() { localStorage.setItem('kekeRawQ', JSON.stringify(rawQ)); localStorage.setItem('kekeAssets', JSON.stringify(assets)); localStorage.setItem('kekeMistakes', JSON.stringify(mistakes)); }
+    function saveData() {
+    localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
+    localStorage.setItem('kekeAssets', JSON.stringify(assets));
+    localStorage.setItem('kekeMistakes', JSON.stringify(mistakes));
+    // --- 外科手術式追加：儲存答題進度與當前範疇題目 ---
+    localStorage.setItem('kekeMainIdx', mainIdx);
+    localStorage.setItem('kekeFilteredQ', JSON.stringify(filteredQ));
+}
 function updateTotalDisplay() {
     const titleElement = document.getElementById('menu-title');
-    // 將「總題數」改為 "Total Questions"，並調整樣式以對齊範疇按鈕
-    titleElement.innerHTML = `COCO Adventure<br><small style="font-size: 0.9rem; font-weight: 900; font-family: 'Microsoft JhengHei', sans-serif; opacity: 0.8;">📚 Total Questions: ${rawQ.length}</small>`;
+    // 嚴格維持原樣：包含曲奇外觀，調整樣式以對齊範疇按鈕
+    titleElement.innerHTML = `🍪 COCO Adventure 🍪<br><small style="font-size: 0.9rem; font-weight: 900; font-family: 'Microsoft JhengHei', sans-serif; opacity: 0.8;">📚 Total Questions: ${rawQ.length}</small>`;
     document.getElementById('wrong-count').innerText = mistakes.length;
+
+    // --- 外科手術式追加：安全除錯版進度還原器 ---
+    if (!window.hasRestoredProgressDone) {
+        window.hasRestoredProgressDone = true; // 設定全域安全鎖
+        
+        setTimeout(() => {
+            const savedFilteredQ = localStorage.getItem('kekeFilteredQ');
+            const savedMainIdx = localStorage.getItem('kekeMainIdx');
+            
+            if (savedFilteredQ && savedMainIdx !== null) {
+                const checkFilteredQ = JSON.parse(savedFilteredQ);
+                const checkMainIdx = parseInt(savedMainIdx, 10);
+                
+                // 雙重安全驗證：確保有進度，且進度還沒做完
+                if (checkFilteredQ.length > 0 && checkMainIdx < checkFilteredQ.length) {
+                    filteredQ = checkFilteredQ;
+                    mainIdx = checkMainIdx;
+                    showUI('quiz-ui');
+                    renderMain(); // 安全重繪答題介面，此時 DOM 已 100% 穩定就位
+                }
+            }
+        }, 100); 
+    }
 }
-// --- V2 步驟五：錯題本去耦合——透過唯一 ID 移除錯題 ---
-function removeMistake(targetId) {
-    // 1. 篩選掉指定 id 的題目
-    mistakes = mistakes.filter(id => id !== targetId);
-    // 2. 儲存更新後的 id 陣列到 localStorage
+function removeMistake(i) {
+    // 1. 從陣列中移除選定的錯題
+    mistakes.splice(i, 1);
+    // 2. 儲存更新後的錯題列表到 localStorage
     saveData();
-    // 3. 立即刷新錯題本介面與主頁計數
+    // 3. 立即刷新錯題本介面
     openReviewList();
+    // 4. 更新主頁面的計數顯示
     updateTotalDisplay();
 }
-
 </script>
 
 <button onclick="toggleImport()" style="position:fixed; bottom:15px; right:15px; opacity:0.3; border:none; background:none; cursor:pointer; font-size:24px; z-index:9999;">⚙️</button>
