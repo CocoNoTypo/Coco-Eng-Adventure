@@ -342,9 +342,14 @@ function startCat(cat) {
     const progressPercent = (mainIdx / filteredQ.length) * 100;
     const progBar = document.getElementById('quiz-progress');
     if (progBar) progBar.style.width = progressPercent + "%";
-
-        document.getElementById('main-keke').src = assets.thinking || "";
-        const art = document.getElementById('article-area');
+    
+    // 修正點：進入答題頁面時，同樣從 thinking 陣列中隨機安全抽取一幅思考中形象，徹底根除破圖
+    if (assets.thinking) {
+        const tImg = Array.isArray(assets.thinking) ? assets.thinking[Math.floor(Math.random() * assets.thinking.length)] : assets.thinking;
+        document.getElementById('main-keke').src = tImg || "";
+    }
+    
+    const art = document.getElementById('article-area');
         art.style.display = q.article ? 'block' : 'none';
         art.innerHTML = q.article ? process(q.article) : "";
         document.getElementById('q-text').innerHTML = `<b>[${q.cat}]:</b> ` + process(q.q);
