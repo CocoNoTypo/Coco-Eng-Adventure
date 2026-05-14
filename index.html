@@ -430,20 +430,22 @@ function openReviewList() {
     document.getElementById('review-modal').style.display = 'flex';
 }
 
-
 function startMistakeQuiz() {
     if(mistakes.length === 0) return;
     document.getElementById('modal-content').style.display = "none";
     const rz = document.getElementById('rev-quiz-zone');
     rz.style.display = "block";
-    
     let q = mistakes[Math.floor(Math.random() * mistakes.length)];
     let revAnswered = false; // 獨立的答題鎖定
 
-    // 1. 建立基礎結構 (包含圖片空間)
+    // --- 外科手術式追加：在錯題本題目加載時，隨機從 thinking 陣列中抽取一幅形象，根除破圖 ---
+    const tk = assets.thinking;
+    const tImg = Array.isArray(tk) ? tk[Math.floor(Math.random() * tk.length)] : tk;
+
+    // 1. 建立基礎結構 (包含圖片空間，已帶入隨機思考中圖片)
     rz.innerHTML = `
         <div style="height:120px; display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
-            <img id="rev-keke" style="max-height:100%;" src="${assets.thinking || ''}" alt=" ">
+            <img id="rev-keke" style="max-height:100%;" src="${tImg || ''}" alt=" ">
         </div>
         <div class="question-box" style="font-size:1rem; border-style:solid;">${process(q.q)}</div>
         <div id="rev-options-container"></div>
@@ -453,7 +455,7 @@ function startMistakeQuiz() {
         </div>
     `;
 
-    // 2. 動態生成按鈕並直接綁定事件 (最保險的做法)
+    // 2. 動態生成按鈕並直接綁定事件
     const container = document.getElementById('rev-options-container');
     q.o.forEach((opt, i) => {
         const btn = document.createElement('button');
@@ -462,19 +464,23 @@ function startMistakeQuiz() {
         btn.onclick = function() {
             if (revAnswered) return;
             revAnswered = true;
-            
             const allBtns = container.getElementsByClassName('opt-btn');
             const revKeke = document.getElementById('rev-keke');
             
             if (i === q.a) {
                 btn.classList.add('correct');
-                if(assets.happy) revKeke.src = assets.happy;
+                // --- 外科手術式追加：錯題答對時，從 happy 陣列中隨機抽取一幅形象顯示 ---
+                const hp = assets.happy;
+                const hImg = Array.isArray(hp) ? hp[Math.floor(Math.random() * hp.length)] : hp;
+                if(hImg) revKeke.src = hImg;
             } else {
                 btn.classList.add('wrong');
                 allBtns[q.a].classList.add('correct'); // 顯示正確答案
-                if(assets.mistake) revKeke.src = assets.mistake;
+                // --- 外科手術式追加：錯題答錯時，從 mistake 陣列中隨機抽取一幅形象顯示 ---
+                const ms = assets.mistake;
+                const mImg = Array.isArray(ms) ? ms[Math.floor(Math.random() * ms.length)] : ms;
+                if(mImg) revKeke.src = mImg;
             }
-            
             const f = document.getElementById('rev-feedback');
             document.getElementById('rev-exp-content').innerHTML = `<b>【解析】</b><br>${q.e}`;
             f.style.display = "block";
@@ -482,7 +488,6 @@ function startMistakeQuiz() {
         container.appendChild(btn);
     });
 }
-
     function openVocabList() {
         document.getElementById('modal-title').innerText = "📝 精緻生字簿";
         document.getElementById('rev-quiz-zone').style.display = "none";
