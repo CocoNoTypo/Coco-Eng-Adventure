@@ -209,7 +209,26 @@
 const CLOUD_JSON_URL = 'https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/questions.json'; 
 
 let rawQ = [], filteredQ = [], mistakes = [], mainIdx = 0, answered = false;
-let assets = { thinking: "", happy: "", mistake: "", bg: "" };
+// --- 修改：注入多張圖片路徑素材，改為隨機陣列結構 ---
+let assets = { 
+    bg: "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/BG.jpg", // 背景固定一張
+    thinking: [
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_thinking01.png",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_thinking02.png",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_thinking03.png",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_thinking04.png" // 如有更多可繼續以逗號追加
+    ], 
+    happy: [
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_happy01.png",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_happy02.webp",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_happy03.png"
+    ], 
+    mistake: [
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_mistake01.webp",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_mistake02.webp",
+        "https://raw.githubusercontent.com/CocoNoTypo/Coco-Eng-Adventure/refs/heads/main/image/coco_mistake03.png"
+    ]
+};
 
 window.onload = () => {
     // 1. 優先加載本地現有數據與資產（嚴格保持原有功能）
@@ -217,9 +236,18 @@ window.onload = () => {
     mistakes = JSON.parse(localStorage.getItem('kekeMistakes') || '[]');
     const sa = localStorage.getItem('kekeAssets');
     if (sa) {
-        assets = JSON.parse(sa);
-        if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`;
-        if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
+        const localAssets = JSON.parse(sa);
+        if (localAssets.bg) assets.bg = localAssets.bg;
+        if (localAssets.thinking) assets.thinking = localAssets.thinking;
+        if (localAssets.happy) assets.happy = localAssets.happy;
+        if (localAssets.mistake) assets.mistake = localAssets.mistake;
+    }
+    
+    if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`;
+    if (assets.thinking) {
+        // 修正點：移除任何多餘乘號，以分號乾淨閉合
+        const tImg = Array.isArray(assets.thinking) ? assets.thinking[Math.floor(Math.random() *assets.thinking.length)] : assets.thinking;
+        document.getElementById('menu-keke').src = tImg || "";
     }
 
     updateTotalDisplay();
@@ -323,14 +351,28 @@ function startCat(cat) {
         const grid = document.getElementById('options-grid'); grid.innerHTML = '';
         q.o.forEach((opt, i) => {
             const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = process(opt);
-            b.onclick = () => {
-                if (answered) return; answered = true;
-                if (i === q.a) { b.classList.add('correct'); document.getElementById('main-keke').src = assets.happy || ""; }
-                else { 
-                    b.classList.add('wrong'); grid.children[q.a].classList.add('correct'); 
-                    document.getElementById('main-keke').src = assets.mistake || ""; 
-                    if(!mistakes.some(m => m.q === q.q)) { mistakes.push(q); saveData(); }
+        b.onclick = () => {
+            if (answered) return;
+            answered = true;
+            if (i === q.a) {
+                b.classList.add('correct');
+                // 答對時：從 happy 陣列中隨機抽取一張預設圖片顯示
+                const hp = assets.happy;
+                const hImg = Array.isArray(hp) ? hp[Math.floor(Math.random() * hp.length)] : hp;
+                document.getElementById('main-keke').src = hImg || "";
+            } else {
+                b.classList.add('wrong');
+                grid.children[q.a].classList.add('correct');
+                // 答錯時：從 mistake 陣列中隨機抽取一張預設圖片顯示
+                const ms = assets.mistake;
+                const mImg = Array.isArray(ms) ? ms[Math.floor(Math.random() * ms.length)] : ms;
+                document.getElementById('main-keke').src = mImg || "";
+                
+                if(!mistakes.some(m => m.q === q.q)) {
+                    mistakes.push(q);
+                    saveData();
                 }
+            }
                 document.getElementById('exp-text').innerText = q.e;
                 document.getElementById('feedback-area').style.display = 'block';
                 art.innerHTML = q.article ? process(q.article) : ""; // 更新帶翻譯的文章
