@@ -221,8 +221,9 @@ window.onload = () => {
         if (assets.bg) document.body.style.backgroundImage = `url(${assets.bg})`;
         if (assets.thinking) document.getElementById('menu-keke').src = assets.thinking;
     }
-    
+
     // --- 外科手術式追加：回復中斷的答題進度 ---
+    let hasSavedProgress = false; // 建立進度鎖
     const savedFilteredQ = localStorage.getItem('kekeFilteredQ');
     const savedMainIdx = localStorage.getItem('kekeMainIdx');
     if (savedFilteredQ && savedMainIdx !== null) {
@@ -233,46 +234,39 @@ window.onload = () => {
         if (filteredQ.length > 0 && mainIdx < filteredQ.length) {
             showUI('quiz-ui');
             renderMain();
+            hasSavedProgress = true; // 鎖定狀態：當前有正在進行的進度
         }
     }
 
     updateTotalDisplay();
 
     // 2. 最乾淨的背景自動匯入：直接解析物件並寫入本機
-    if (CLOUD_JSON_URL) {
+    // 安全防線：只有當前沒有未完成的答題進度時，才允許背景同步，徹底避免異步覆蓋衝突
+    if (CLOUD_JSON_URL && !hasSavedProgress) {
         fetch(CLOUD_JSON_URL)
             .then(response => {
                 if (!response.ok) throw new Error('網路回應不成功');
                 return response.json();
             })
             .then(cloudData => {
-                // 確保雲端資料存在
                 if (cloudData && typeof cloudData === 'object') {
                     let isUpdated = false;
 
-                    // 歷遍雲端 JSON 物件中的每一個唯一 ID 鍵名
                     for (const id in cloudData) {
                         const questionItem = cloudData[id];
                         if (questionItem && questionItem.q) {
-                            // 將 ID 精準寫入題目內部
                             questionItem.id = id; 
 
-                            // 精準去重檢查：如果本地還沒有這題文字，就塞入 rawQ
                             if (!rawQ.some(item => item.q === questionItem.q || item.id === id)) {
                                 rawQ.push(questionItem);
                                 isUpdated = true;
                             }
                         }
                     }
+
                     if (isUpdated) {
-                        // 【外科技術修正點】：嚴格只單獨儲存題庫核心數據
                         localStorage.setItem('kekeRawQ', JSON.stringify(rawQ));
-                        
-                        // 檢查當前畫面是不是已經因為進度恢復而進入了答題區（quiz-ui）
-                        // 如果已經在答題區，代表進度正在運行，不可盲目呼叫可能干擾畫面的全域重繪
-                        if (document.getElementById('quiz-ui').style.display !== 'block') {
-                            updateTotalDisplay();
-                        }
+                        updateTotalDisplay();
                     }
                 }
             })
@@ -280,7 +274,7 @@ window.onload = () => {
                 console.error('[自動匯入失敗]：', error);
             });
     }
-
+};
     function process(t) {
         if (!t) return "";
         if (!answered) return t.replace(/\[\[(.*?)\|(.*?)\]\]/g, '$1');
