@@ -528,15 +528,55 @@ function startMistakeQuiz() {
         container.appendChild(btn);
     });
 }
-    function openVocabList() {
-        document.getElementById('modal-title').innerText = "📝 精緻生字簿";
-        document.getElementById('rev-quiz-zone').style.display = "none";
-        const mc = document.getElementById('modal-content');
-        mc.style.display = "block";
-        let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
-        mc.innerHTML = v.map(i => `<div class="vocab-card"><strong>${i.w}</strong><br><small>${i.m}</small><span style="position:absolute; right:10px; bottom:5px; font-size:0.6rem; color:#ccc;">${i.d}</span></div>`).join('') || "尚無收藏";
+function openVocabList() {
+    document.getElementById('modal-title').innerText = "📝 精緻生字簿";
+    document.getElementById('rev-quiz-zone').style.display = "none";
+    const mc = document.getElementById('modal-content');
+    mc.style.display = "block";
+    
+    let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
+    if (v.length === 0) {
+        mc.innerHTML = "<div style='text-align:center; padding:20px; font-weight:800; color:var(--shengmi-blue);'>尚無收藏單字，趕快去答題解鎖吧 📚</div>";
         document.getElementById('review-modal').style.display = 'flex';
+        return;
     }
+
+    // 生成全新手繪大卡片網格生字本
+    mc.innerHTML = `
+        <div class="notebook-base">
+            <div class="notebook-grid">
+                ${v.map(item => {
+                    let cleanMean = item.m || "";
+                    let sentenceHTML = "";
+                    
+                    // 核心字串自適應拆解：若單字翻譯中內夾例句，自動精準抽離排版
+                    if (cleanMean.includes("例句：") || cleanMean.toLowerCase().includes("sentence:")) {
+                        const parts = cleanMean.split(/(?:例句：|Sentence:)/i);
+                        cleanMean = parts[0];
+                        if (parts[1]) {
+                            sentenceHTML = `
+                                <div class="v-sentence-lbl">Sentence:</div>
+                                <div class="v-sentence-txt">${parts[1].trim()}</div>
+                            `;
+                        }
+                    }
+                    
+                    return `
+                        <div class="vocab-card">
+                            <div class="v-word">${item.w}</div>
+                            <div class="v-mean">${cleanMean.trim()}</div>
+                            ${sentenceHTML}
+                            <div style="font-size: 0.65rem; color: #ccc; margin-top: 12px; text-align: right;">📅 ${item.d}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('review-modal').style.display = 'flex';
+}
+
 function goNext() {
     mainIdx++;
     saveData(); // 外科手術式追加：前進下一題時，立刻將最新題號寫入儲存空間
