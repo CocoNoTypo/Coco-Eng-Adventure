@@ -207,9 +207,12 @@
 </div>
 
 <!-- 彈窗系統 -->
-<div id="settings-modal" class="modal-overlay">
-    <div class="modal-body" style="text-align:left;">
-        <h3 style="color:var(--shengmi-blue); font-weight:900; text-align:center;">🎨 網頁裝修</h3>
+<div id="settings-modal" class="modal-overlay"> 
+  <div class="modal-body" style="text-align:left; position: relative; padding-top: 40px;"> 
+    <!-- 100% 精確補回裝修彈窗專屬的右上角懸浮關閉按鈕 -->
+    <button class="modal-close-btn" onclick="closeM('settings-modal')">✕</button>
+    
+    <h3 style="color:var(--shengmi-blue); font-weight:900; text-align:center;">🎨 網頁裝修</h3>
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>🖼️ 背景圖</span><label class="nav-btn">上傳<input type="file" hidden onchange="upFile(event, 'bg')"></label></div>
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>❓ 思考中</span><label class="nav-btn">上傳<input type="file" hidden onchange="upFile(event, 'thinking')"></label></div>
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>✅ 答對了</span><label class="nav-btn">上傳<input type="file" hidden onchange="upFile(event, 'happy')"></label></div>
