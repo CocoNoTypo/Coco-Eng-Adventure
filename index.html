@@ -63,82 +63,14 @@
             line-height: 1.6; 
         }
 
-/* --- 優化目標 3：升級生字簿界面 (全實體雙欄大卡片筆記本風) --- */
-.notebook-base {
-  background: #fff;
-  border: 8px solid #8B2500; /* 深紅色筆記本精緻厚書皮 */
-  border-radius: 25px;
-  padding: 20px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-  background-image: linear-gradient(90deg, transparent 49%, #d0d0d0 49%, #d0d0d0 51%, transparent 51%); /* 中央精細活頁中縫 */
-  margin-top: 15px;
-}
+        /* 精緻生字簿卡片 */
+        .vocab-card {
+            background: linear-gradient(135deg, #fff 0%, #fff9f0 100%);
+            border: 2px solid #ffcc80; border-radius: 15px;
+            padding: 12px 18px; margin-bottom: 10px; text-align: left;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative;
+        }
 
-.notebook-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 標準 2 欄對開排版 */
-  gap: 20px;
-  max-height: 480px;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-/* 完美還原效果圖的粉紅圓角手繪風大生字卡 */
-.vocab-card {
-  background: #fff !important;
-  border: 3px solid #ffb3b3 !important; /* 粉紅色厚邊框 */
-  border-radius: 18px !important;
-  padding: 18px !important;
-  text-align: left !important;
-  box-shadow: 0 4px 12px rgba(255,179,179,0.1) !important;
-  transition: transform 0.2s ease !important;
-  box-sizing: border-box !important;
-  display: block !important;
-  height: auto !important;
-  margin-bottom: 0 !important;
-}
-
-.vocab-card:hover {
-  transform: translateY(-2px) !important;
-  border-color: #ff8080 !important;
-  background: #fffafb !important;
-}
-
-/* 卡片內部排版樣式 */
-.v-word {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #2c3e50;
-  margin-bottom: 4px;
-}
-
-.v-mean {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #555;
-  margin-bottom: 8px;
-  line-height: 1.4;
-}
-
-.v-sentence-lbl {
-  font-size: 0.9rem;
-  font-weight: 900;
-  color: #d32f2f; /* 紅色 Sentence 標題 */
-  margin-top: 6px;
-}
-
-.v-sentence-txt {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #333;
-  line-height: 1.3;
-}
-
-/* 流動設備手機端自動自適應降級為單欄，防止窄螢幕擠壓變形 */
-@media (max-width: 550px) {
-  .notebook-grid { grid-template-columns: 1fr; }
-  .notebook-base { background-image: none; padding: 10px; }
-}
         /* 錯題卡片與按鈕 */
         .mistake-card { border: 3px dashed var(--shengmi-blue); background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 20px; text-align: left; position: relative; }
         .mastered-btn { position: absolute; top: 10px; right: 10px; background: #e8f5e9; border: 1.5px solid #4caf50; color: #4caf50; font-size: 0.7rem; border-radius: 10px; padding: 3px 8px; cursor: pointer; }
@@ -596,55 +528,24 @@ function startMistakeQuiz() {
         container.appendChild(btn);
     });
 }
-function openVocabList() {
-    document.getElementById('modal-title').innerText = "📝 精緻生字簿";
-    document.getElementById('rev-quiz-zone').style.display = "none";
-    const mc = document.getElementById('modal-content');
-    mc.style.display = "block";
-    
-    let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
-    if (v.length === 0) {
-        mc.innerHTML = "<div style='text-align:center; padding:20px; font-weight:800; color:var(--shengmi-blue);'>尚無收藏單字，趕快去答題解鎖吧 📚</div>";
+    function openVocabList() {
+        document.getElementById('modal-title').innerText = "📝 精緻生字簿";
+        document.getElementById('rev-quiz-zone').style.display = "none";
+        const mc = document.getElementById('modal-content');
+        mc.style.display = "block";
+        let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
+        mc.innerHTML = v.map(i => `<div class="vocab-card"><strong>${i.w}</strong><br><small>${i.m}</small><span style="position:absolute; right:10px; bottom:5px; font-size:0.6rem; color:#ccc;">${i.d}</span></div>`).join('') || "尚無收藏";
         document.getElementById('review-modal').style.display = 'flex';
-        return;
     }
-
-    // 生成全新手繪大卡片網格生字本
-    mc.innerHTML = `
-        <div class="notebook-base">
-            <div class="notebook-grid">
-                ${v.map(item => {
-                    let cleanMean = item.m || "";
-                    let sentenceHTML = "";
-                    
-                    // 核心字串自適應拆解：若單字翻譯中內夾例句，自動精準抽離排版
-                    if (cleanMean.includes("例句：") || cleanMean.toLowerCase().includes("sentence:")) {
-                        const parts = cleanMean.split(/(?:例句：|Sentence:)/i);
-                        cleanMean = parts[0];
-                        if (parts[1]) {
-                            sentenceHTML = `
-                                <div class="v-sentence-lbl">Sentence:</div>
-                                <div class="v-sentence-txt">${parts[1].trim()}</div>
-                            `;
-                        }
-                    }
-                    
-                    return `
-                        <div class="vocab-card">
-                            <div class="v-word">${item.w}</div>
-                            <div class="v-mean">${cleanMean.trim()}</div>
-                            ${sentenceHTML}
-                            <div style="font-size: 0.65rem; color: #ccc; margin-top: 12px; text-align: right;">📅 ${item.d}</div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('review-modal').style.display = 'flex';
+function goNext() {
+    mainIdx++;
+    saveData(); // 外科手術式追加：前進下一題時，立刻將最新題號寫入儲存空間
+    if (mainIdx < filteredQ.length) {
+        renderMain();
+    } else {
+        showMenu();
+    }
 }
-
 
 function showMenu() {
     showUI('category-menu');
