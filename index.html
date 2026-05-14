@@ -127,6 +127,37 @@
     0%, 100% { transform: rotate(-10deg); }
     50% { transform: rotate(15deg); }
 }
+
+/* --- 優化目標 2：實體關閉按鈕 (右上角懸浮手繪風叉叉) --- */
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    background: #fff;
+    border: 2.5px dashed var(--shengmi-blue); /* 同步招牌藍色虛線 */
+    color: var(--shengmi-blue);
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 3200; /* 確保絕對浮於最上層 */
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close-btn:hover {
+    border-style: solid;
+    background: var(--shengmi-blue);
+    color: #fff;
+    transform: scale(1.08);
+}
+
     </style>
 </head>
 <body>
@@ -184,17 +215,19 @@
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>✅ 答對了</span><label class="nav-btn">上傳<input type="file" hidden onchange="upFile(event, 'happy')"></label></div>
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;"><span>❌ 答錯了</span><label class="nav-btn">上傳<input type="file" hidden onchange="upFile(event, 'mistake')"></label></div>
         <button class="nav-btn" style="width:100%; margin-top:20px; color:red;" onclick="clearAll()">🗑️ 重置所有數據</button>
-        <button class="nav-btn" style="display:block; margin:20px auto 0;" onclick="closeM('settings-modal')">✕ 關閉</button>
+
     </div>
 </div>
 
-<div id="review-modal" class="modal-overlay">
-    <div class="modal-body">
-        <h3 id="modal-title" style="color:var(--shengmi-blue); font-weight:900; text-align:center;"></h3>
-        <div id="modal-content"></div>
-        <div id="rev-quiz-zone" style="display:none;"></div>
-        <button class="nav-btn" style="display:block; margin:20px auto 0;" onclick="closeM('review-modal')">✕ 關閉</button>
-    </div>
+<div id="review-modal" class="modal-overlay"> 
+  <div class="modal-body" style="position: relative; padding-top: 40px;"> 
+    <!-- 在這裡精確貼上新按鈕 -->
+    <button class="modal-close-btn" onclick="closeM('review-modal')">✕</button>
+    
+    <h3 id="modal-title" style="color:var(--shengmi-blue); font-weight:900; text-align:center;"></h3> 
+    <div id="modal-content"></div> 
+    <div id="rev-quiz-zone" style="display:none;"></div> 
+  </div> 
 </div>
 
 <!-- 3. 隱藏的齒輪按鈕：右下角低透明度 -->
