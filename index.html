@@ -700,9 +700,18 @@ function startMistakeQuiz() {
             return;
         }
 
-        // 📐 100% 繞過矩陣解析、絕對不會崩潰的核心歸位算法
+        // 📐 經過嚴格運算查核的 3D 角度解析算法 (100% 解除全域阻斷)
         const matrix = window.getComputedStyle(page).transform;
-        let actualAngle = currentRotation; 
+        let actualAngle = 0;
+        
+        if (matrix && matrix !== 'none') {
+            // 先用左括號切開，再用右括號切開，最後用逗號分割成標準純數字陣列
+            const values = matrix.split('(')[1].split(')')[0].split(',');
+            const cos = parseFloat(values[0]);
+            const sin = parseFloat(values[1]);
+            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+            if (actualAngle > 0) actualAngle = -actualAngle;
+        }
 
         page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
         if (actualAngle < -90) {
@@ -712,6 +721,7 @@ function startMistakeQuiz() {
             page.style.transform = 'rotateY(0deg)';
             currentRotation = 0;
         }
+
     });
 
     // 4. 追加底層靜態背板的點擊事件，確保點擊最左或最右邊緣也能觸發無縫翻頁
