@@ -747,17 +747,60 @@ function openVocabList() {
         page.style.transform = `rotateY(${angle}deg)`;
     });
 
+    // 💡 在 pointerup 上方加兩行極簡的雙擊計時全域變數 (放在事件外面)
+    let lastTapTime = 0;
+
     page.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
         isDragging = false;
 
-        // 💡 核心微創分流：計算放開指針時的 X 軸滑動距離
-        const dragDistance = Math.abs(e.clientX - startX);
-        // 💡 如果滑動距離小於 5 像素，判定為「純點擊」，直接結束此事件，讓下方的 onclick 點擊翻頁事件順暢觸發
-        if (dragDistance < 5) {
-            return;
+        // ⏱️ 核心微創雙擊分流鎖：計算連續兩次放開指針的時間差
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
+        lastTapTime = currentTime;
+
+        // 💡 如果兩次點擊時間差小於 300 毫秒 (0.3秒)，判定為「完美雙擊」
+        if (tapLength < 300 && tapLength > 0) {
+            // 抓取整個書本舞台的寬度，判斷雙擊的位置在左半邊還是右半邊
+            const rect = page.parentElement.getBoundingClientRect();
+            const clickXInsideScene = e.clientX - rect.left;
+            const midPoint = rect.width / 2;
+
+            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            if (clickXInsideScene > midPoint) {
+                // 雙擊右半邊：命令活頁直接往左翻頁
+                page.style.transform = 'rotateY(-180deg)';
+                currentRotation = -180;
+            } else {
+                // 雙擊左半邊：命令活頁直接往右拉回
+                page.style.transform = 'rotateY(0deg)';
+                currentRotation = 0;
+            }
+            return; // 💡 關鍵截流：雙擊成功立刻翻頁並阻斷，絕對不允許向下執行原本會強行拉回原點的吸附算法
         }
 
+        // 📐 若這只是一次長距離的按住拖拽，則完美沿用您健康的原始物理歸位演算
+        const matrix = window.getComputedStyle(page).transform;
+        let actualAngle = 0;
+        if (matrix && matrix !== 'none' && matrix.indexOf('(') !== -1) {
+            const values = matrix.split('(').split(')').split(',');
+            const cos = parseFloat(values);
+            const sin = parseFloat(values);
+            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+            if (actualAngle > 0) actualAngle = -actualAngle;
+        }
+
+        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+
+        if (actualAngle < -90) {
+            page.style.transform = 'rotateY(-180deg)';
+            currentRotation = -180;
+        } else {
+            page.style.transform = 'rotateY(0deg)';
+            currentRotation = 0;
+        }
+    });
         const matrix = window.getComputedStyle(page).transform;
         let actualAngle = 0;
         if (matrix && matrix !== 'none') {
