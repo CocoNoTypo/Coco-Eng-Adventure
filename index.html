@@ -644,7 +644,7 @@ function startMistakeQuiz() {
     });
 }
 function openVocabList() {
-    document.getElementById('modal-title').innerText = "📝 生字簿";
+    document.getElementById('modal-title').innerText = "📝 精緻生字簿";
     document.getElementById('rev-quiz-zone').style.display = "none";
     const mc = document.getElementById('modal-content');
     mc.style.display = "block";
@@ -747,12 +747,10 @@ function openVocabList() {
         page.style.transform = `rotateY(${angle}deg)`;
     });
 
-    // 📐 100% 採用瀏覽器原生計數器，徹底根除全域變數衝突的雙擊分流監聽器
     page.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
         isDragging = false;
-
-        // 💡 核心原生的雙擊判定鎖：由瀏覽器底層計數，e.detail 等於 2 代表完美雙擊
+                // 💡 嵌入點：由瀏覽器底層計數，e.detail 等於 2 代表快速雙擊 (0全域變數污染)
         if (e.detail === 2) {
             // 抓取整個書本舞台的寬度，判斷雙擊的位置在左半邊還是右半邊
             const rect = page.parentElement.getBoundingClientRect();
@@ -770,22 +768,19 @@ function openVocabList() {
                 page.style.transform = 'rotateY(0deg)';
                 currentRotation = 0;
             }
-            return; // 💡 關鍵截流：雙擊成功立刻翻頁並阻斷，絕對不允許向下執行原本會強行拉回原點的吸附算法
+            return; // 💡 雙擊成功立刻翻頁並截流，阻斷下方原本會強行拉回原點的吸附算法
         }
-
-        // 📐 若這只是一次正常的長距離拖拽滑動，則完美沿用您健康的原始物理歸位演算
-        const matrix = window.getComputedStyle(page).transform;
-        let actualAngle = 0;
-        if (matrix && matrix !== 'none' && matrix.indexOf('(') !== -1) {
-            const values = matrix.split('(').split(')').split(',');
-            const cos = parseFloat(values);
-            const sin = parseFloat(values);
-            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-            if (actualAngle > 0) actualAngle = -actualAngle;
-        }
+const matrix = window.getComputedStyle(page).transform;
+let actualAngle = 0;
+if (matrix && matrix !== 'none') {
+    const values = matrix.split('(')[1].split(')')[0].split(',');
+    const cos = parseFloat(values[0]);
+    const sin = parseFloat(values[1]);
+    actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+    if (actualAngle > 0) actualAngle = -actualAngle;
+}
 
         page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-
         if (actualAngle < -90) {
             page.style.transform = 'rotateY(-180deg)';
             currentRotation = -180;
@@ -794,95 +789,6 @@ function openVocabList() {
             currentRotation = 0;
         }
     });
-
-        // 📐 若這只是一次長距離的按住拖拽，則完美沿用您健康的原始物理歸位演算
-        const matrix = window.getComputedStyle(page).transform;
-        let actualAngle = 0;
-        if (matrix && matrix !== 'none' && matrix.indexOf('(') !== -1) {
-            const values = matrix.split('(').split(')').split(',');
-            const cos = parseFloat(values);
-            const sin = parseFloat(values);
-            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-            if (actualAngle > 0) actualAngle = -actualAngle;
-        }
-
-        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-
-        if (actualAngle < -90) {
-            page.style.transform = 'rotateY(-180deg)';
-            currentRotation = -180;
-        } else {
-            page.style.transform = 'rotateY(0deg)';
-            currentRotation = 0;
-        }
-    });
-        const matrix = window.getComputedStyle(page).transform;
-        let actualAngle = 0;
-        if (matrix && matrix !== 'none') {
-            const values = matrix.split('(')[1].split(')')[0].split(',');
-            const cos = parseFloat(values[0]);
-            const sin = parseFloat(values[1]);
-            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-            if (actualAngle > 0) actualAngle = -actualAngle;
-        }
-
-        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-
-        if (actualAngle < -90) {
-            page.style.transform = 'rotateY(-180deg)';
-            currentRotation = -180;
-        } else {
-            page.style.transform = 'rotateY(0deg)';
-            currentRotation = 0;
-        }
-    });
-
-    // ==========================================================================
-    // 👈 💡 在此處精確插入：底層靜態背板與兩側點擊翻頁事件 (不與上方拖拽衝突)
-    // ==========================================================================
-    const baseLeft = page.parentElement.querySelector('.base-left');
-    const baseRight = page.parentElement.querySelector('.base-right');
-    const sideFront = page.querySelector('.book-front-side');
-    const sideBack = page.querySelector('.book-back-side');
-
-    const flipForward = () => {
-        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-        page.style.transform = 'rotateY(0deg)';
-        currentRotation = 0;
-    };
-
-    const flipBackward = () => {
-        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-        page.style.transform = 'rotateY(-180deg)';
-        currentRotation = -180;
-    };
-    // ==========================================================================
-    // 💡 100% 繞過層級遮擋：將點擊事件精確改綁至最頂層活頁正反面 (點左往前、點右往後)
-    // ==========================================================================
-    if (sideFront) {
-        sideFront.onclick = () => {
-            // 點擊活頁正面(右半頁)：向後翻頁
-            flipBackward();
-        };
-    }
-    if (sideBack) {
-        sideBack.onclick = () => {
-            // 點擊活頁反面(左半頁)：向前翻頁
-            flipForward();
-        };
-    }
-    if (baseLeft) {
-        baseLeft.onclick = () => {
-            // 點擊最左側靜態書底補強：向前翻頁
-            flipForward();
-        };
-    }
-    if (baseRight) {
-        baseRight.onclick = () => {
-            // 點擊最右側靜態書底補強：向後翻頁
-            flipBackward();
-        };
-    }
 }
 
 function showMenu() {
