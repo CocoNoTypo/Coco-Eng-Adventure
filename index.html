@@ -700,12 +700,12 @@ function startMistakeQuiz() {
             return;
         }
 
-        // 📐 經過嚴格運算查核的 3D 角度解析算法 (100% 解除全域阻斷)
+        // 📐 100% 安全防禦的 3D 角度解析算法 (徹底根除 undefined.split 致命錯誤)
         const matrix = window.getComputedStyle(page).transform;
         let actualAngle = 0;
         
-        if (matrix && matrix !== 'none') {
-            // 先用左括號切開，再用右括號切開，最後用逗號分割成標準純數字陣列
+        // 💡 安全鎖：只有當 matrix 存在，且明確包含左括號 '(' 時，才允許進行鏈式切割
+        if (matrix && matrix !== 'none' && matrix.indexOf('(') !== -1) {
             const values = matrix.split('(')[1].split(')')[0].split(',');
             const cos = parseFloat(values[0]);
             const sin = parseFloat(values[1]);
