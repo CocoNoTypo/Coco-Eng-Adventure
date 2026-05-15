@@ -684,7 +684,6 @@ function startMistakeQuiz() {
 
         // 💡 核心分流機制：若移動距離小於 7 像素，判定為「純點擊」翻頁
         if (distance < 7) {
-            // 判斷點擊的位置是在書軸中線的左側還是右側
             const rect = page.parentElement.getBoundingClientRect();
             const clickXInsideScene = e.clientX - rect.left;
             const midPoint = rect.width / 2;
@@ -692,27 +691,18 @@ function startMistakeQuiz() {
             page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
             
             if (clickXInsideScene > midPoint) {
-                // 點擊右半邊：向後翻頁 (蓋到左邊去 -180度)
                 page.style.transform = 'rotateY(-180deg)';
                 currentRotation = -180;
             } else {
-                // 點擊左半邊：向前翻頁 (拉回右邊去 0度)
                 page.style.transform = 'rotateY(0deg)';
                 currentRotation = 0;
             }
-            return; // 點擊流程結束，直接阻斷下方拖拽吸附演算
+            return;
         }
 
-        // 📐 若移動距離大於 7 像素，則維持原本健康的拖拽吸附歸位演算
+        // 📐 100% 繞過矩陣解析、絕對不會崩潰的核心歸位算法
         const matrix = window.getComputedStyle(page).transform;
-        let actualAngle = 0;
-        if (matrix && matrix !== 'none') {
-            const values = matrix.split('(')[1].split(')')[0].split(',');
-            const cos = parseFloat(values[0]);
-            const sin = parseFloat(values[1]);
-            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-            if (actualAngle > 0) actualAngle = -actualAngle;
-        }
+        let actualAngle = currentRotation; 
 
         page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
         if (actualAngle < -90) {
