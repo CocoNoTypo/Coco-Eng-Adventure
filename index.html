@@ -158,6 +158,121 @@
     transform: scale(1.08);
 }
 
+/* ==========================================================================
+   🎨 生字簿優化：擬真可愛手繪風 3D 雙頁拖拽書本樣式
+   ========================================================================== */
+.book-scene {
+    perspective: 2000px;
+    width: 100%;
+    max-width: 500px; /* 完美契合 modal-body 寬度 */
+    height: 380px;
+    position: relative;
+    margin: 15px auto 0 auto;
+    touch-action: none; /* 阻斷手機瀏覽器預設滑動，專注拖拽 */
+}
+.book-base {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    box-shadow: 0 10px 25px rgba(100,149,237,0.15);
+    border-radius: 20px;
+    overflow: hidden;
+    z-index: 1;
+}
+.base-left {
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to left, #f7fafd 0%, #ffffff 100%);
+    border-radius: 20px 0 0 20px;
+    border-right: 2px solid rgba(100,149,237,0.2);
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.base-right {
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, #f7fafd 0%, #ffffff 100%);
+    border-radius: 0 20px 20px 0;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.drag-page {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform-style: preserve-3d;
+    transform-origin: left center;
+    cursor: grab;
+    user-select: none;
+    z-index: 2;
+}
+.drag-page:active {
+    cursor: grabbing;
+}
+.book-side {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 👈 精確修正此行為完整名稱 */
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.05);
+    overflow-y: auto;
+}
+.book-front-side {
+    background: linear-gradient(to right, #f2f7fc 0%, #ffffff 100%);
+    border-radius: 0 20px 20px 0;
+}
+.book-back-side {
+    background: linear-gradient(to left, #f2f7fc 0%, #ffffff 100%);
+    transform: rotateY(180deg);
+    border-radius: 20px 0 0 20px;
+    border-right: 2px solid rgba(100,149,237,0.2);
+}
+.book-page-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.book-page-title {
+    color: var(--shengmi-blue);
+    font-size: 0.9rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-align: center;
+    border-bottom: 2px dashed rgba(100,149,237,0.2);
+    padding-bottom: 3px;
+}
+.book-page-body {
+    flex: 1;
+    overflow-y: auto;
+}
+.book-page-num {
+    font-size: 0.65rem;
+    color: #95a5a6;
+    text-align: center;
+    margin-top: 5px;
+    font-weight: 800;
+}
+.drag-hint-bar {
+    background: rgba(100,149,237,0.1);
+    color: var(--shengmi-blue);
+    text-align: center;
+    padding: 4px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    border: 1.5px dashed var(--shengmi-blue);
+    margin-top: auto;
+}
     </style>
 </head>
 <body>
@@ -528,23 +643,133 @@ function startMistakeQuiz() {
         container.appendChild(btn);
     });
 }
-    function openVocabList() {
-        document.getElementById('modal-title').innerText = "📝 精緻生字簿";
-        document.getElementById('rev-quiz-zone').style.display = "none";
-        const mc = document.getElementById('modal-content');
-        mc.style.display = "block";
-        let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
-        mc.innerHTML = v.map(i => `<div class="vocab-card"><strong>${i.w}</strong><br><small>${i.m}</small><span style="position:absolute; right:10px; bottom:5px; font-size:0.6rem; color:#ccc;">${i.d}</span></div>`).join('') || "尚無收藏";
-        document.getElementById('review-modal').style.display = 'flex';
+function openVocabList() {
+    document.getElementById('modal-title').innerText = "📝 精緻生字簿";
+    document.getElementById('rev-quiz-zone').style.display = "none";
+    const mc = document.getElementById('modal-content');
+    mc.style.display = "block";
+    
+    // 讀取本地生字數據
+    let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
+    
+    // 輔助函式：將單字卡陣列轉為 HTML 字符串
+    const renderCards = (arr) => arr.map(i => `
+        <div class="vocab-card" style="padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.85rem;">
+            <strong>${i.w}</strong><br>
+            <small style="font-size: 0.75rem; color:#666;">${i.m}</small>
+            <span style="position:absolute; right:8px; bottom:3px; font-size:0.55rem; color:#bbb;">${i.d}</span>
+        </div>
+    `).join('');
+
+    // 平均分配 4 個書頁的數據路由
+    let p1Data = [], p2Data = [], p3Data = [], p4Data = [];
+    if (v.length > 0) {
+        const perPage = Math.ceil(v.length / 4);
+        p1Data = v.slice(0, perPage);
+        p2Data = v.slice(perPage, perPage * 2);
+        p3Data = v.slice(perPage * 2, perPage * 3);
+        p4Data = v.slice(perPage * 3);
     }
-function goNext() {
-    mainIdx++;
-    saveData(); // 外科手術式追加：前進下一題時，立刻將最新題號寫入儲存空間
-    if (mainIdx < filteredQ.length) {
-        renderMain();
-    } else {
-        showMenu();
-    }
+
+    const emptyMsg = "<div style='text-align:center; padding:30px; font-size:0.85rem; color:#aaa; font-weight:800;'>尚無收藏</div>";
+
+    // 注入手繪風擬真 3D 雙頁展開書本結構
+    mc.innerHTML = `
+        <div class="book-scene" style="border: 3px dashed var(--shengmi-blue); border-radius: 24px;">
+            <!-- 1. 底層靜態雙頁背景 📖 -->
+            <div class="book-base">
+                <!-- 左書底 (Page 1) -->
+                <div class="base-left">
+                    <div class="book-page-content">
+                        <div class="book-page-title">📖 筆記起點</div>
+                        <div class="book-page-body">${p1Data.length ? renderCards(p1Data) : emptyMsg}</div>
+                        <div class="book-page-num">Page 1</div>
+                    </div>
+                </div>
+                <!-- 右書底 (Page 4) -->
+                <div class="base-right">
+                    <div class="book-page-content">
+                        <div class="book-page-title">終點 🏁</div>
+                        <div class="book-page-body">${p4Data.length ? renderCards(p4Data) : emptyMsg}</div>
+                        <div class="book-page-num">Page 4</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 上層動態物理活頁 📄 -->
+            <div class="drag-page" id="targetPage">
+                <!-- 活頁正面 (Page 2) -->
+                <div class="book-side book-front-side">
+                    <div class="book-page-content">
+                        <div class="book-page-title">生字收藏</div>
+                        <div class="book-page-body">${p2Data.length ? renderCards(p2Data) : (v.length ? "" : emptyMsg)}</div>
+                        <div class="drag-hint-bar">👈 往左翻頁</div>
+                        <div class="book-page-num">Page 2</div>
+                    </div>
+                </div>
+                <!-- 活頁反面 (Page 3) -->
+                <div class="book-side book-back-side">
+                    <div class="book-page-content">
+                        <div class="book-page-title">生字續頁</div>
+                        <div class="book-page-body">${p3Data.length ? renderCards(p3Data) : (v.length ? "" : emptyMsg)}</div>
+                        <div class="drag-hint-bar">👉 往右拉回</div>
+                        <div class="book-page-num">Page 3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('review-modal').style.display = 'flex';
+
+    // 啟動物理拖拽演算鏈 (完美支援滑鼠與手機觸控)
+    const page = document.getElementById('targetPage');
+    if (!page) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let currentRotation = 0;
+    const sceneWidth = page.parentElement.offsetWidth / 2 || 170; // 動態抓取單頁寬度基準
+
+    page.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        page.style.transition = 'none';
+        page.setPointerCapture(e.pointerId);
+    });
+
+    page.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - startX;
+        let angle = (deltaX / sceneWidth) * 180 + currentRotation;
+        if (angle > 0) angle = 0;
+        if (angle < -180) angle = -180;
+        page.style.transform = `rotateY(${angle}deg)`;
+    });
+
+    page.addEventListener('pointerup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+const matrix = window.getComputedStyle(page).transform;
+let actualAngle = 0;
+if (matrix && matrix !== 'none') {
+    const values = matrix.split('(')[1].split(')')[0].split(',');
+    const cos = parseFloat(values[0]);
+    const sin = parseFloat(values[1]);
+    actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+    if (actualAngle > 0) actualAngle = -actualAngle;
+}
+
+        page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+        if (actualAngle < -90) {
+            page.style.transform = 'rotateY(-180deg)';
+            currentRotation = -180;
+        } else {
+            page.style.transform = 'rotateY(0deg)';
+            currentRotation = 0;
+        }
+    });
 }
 
 function showMenu() {
