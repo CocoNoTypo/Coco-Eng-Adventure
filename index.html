@@ -750,18 +750,26 @@ function openVocabList() {
     page.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
         isDragging = false;
-        
-const matrix = window.getComputedStyle(page).transform;
-let actualAngle = 0;
-if (matrix && matrix !== 'none') {
-    const values = matrix.split('(')[1].split(')')[0].split(',');
-    const cos = parseFloat(values[0]);
-    const sin = parseFloat(values[1]);
-    actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-    if (actualAngle > 0) actualAngle = -actualAngle;
-}
+
+        // 💡 核心微創分流：計算放開指針時的 X 軸滑動距離
+        const dragDistance = Math.abs(e.clientX - startX);
+        // 💡 如果滑動距離小於 5 像素，判定為「純點擊」，直接結束此事件，讓下方的 onclick 點擊翻頁事件順暢觸發
+        if (dragDistance < 5) {
+            return;
+        }
+
+        const matrix = window.getComputedStyle(page).transform;
+        let actualAngle = 0;
+        if (matrix && matrix !== 'none') {
+            const values = matrix.split('(')[1].split(')')[0].split(',');
+            const cos = parseFloat(values[0]);
+            const sin = parseFloat(values[1]);
+            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+            if (actualAngle > 0) actualAngle = -actualAngle;
+        }
 
         page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+
         if (actualAngle < -90) {
             page.style.transform = 'rotateY(-180deg)';
             currentRotation = -180;
@@ -790,11 +798,33 @@ if (matrix && matrix !== 'none') {
         page.style.transform = 'rotateY(-180deg)';
         currentRotation = -180;
     };
-
-    if (baseLeft) baseLeft.onclick = flipForward;
-    if (sideBack) sideBack.onclick = flipForward;
-    if (baseRight) baseRight.onclick = flipBackward;
-    if (sideFront) sideFront.onclick = flipBackward;
+    // ==========================================================================
+    // 💡 100% 繞過層級遮擋：將點擊事件精確改綁至最頂層活頁正反面 (點左往前、點右往後)
+    // ==========================================================================
+    if (sideFront) {
+        sideFront.onclick = () => {
+            // 點擊活頁正面(右半頁)：向後翻頁
+            flipBackward();
+        };
+    }
+    if (sideBack) {
+        sideBack.onclick = () => {
+            // 點擊活頁反面(左半頁)：向前翻頁
+            flipForward();
+        };
+    }
+    if (baseLeft) {
+        baseLeft.onclick = () => {
+            // 點擊最左側靜態書底補強：向前翻頁
+            flipForward();
+        };
+    }
+    if (baseRight) {
+        baseRight.onclick = () => {
+            // 點擊最右側靜態書底補強：向後翻頁
+            flipBackward();
+        };
+    }
 }
 
 function showMenu() {
