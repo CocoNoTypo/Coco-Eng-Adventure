@@ -731,12 +731,42 @@ function openVocabList() {
     let currentRotation = 0;
     const sceneWidth = page.parentElement.offsetWidth / 2 || 170; // 動態抓取單頁寬度基準
 
+    // 📐 最高檢查清單規範化：在 pointerdown 第一秒利用 Dataset 截流，徹底根除指標捕獲衝突
     page.addEventListener('pointerdown', (e) => {
+        const now = new Date().getTime();
+        const lastDown = parseInt(page.dataset.lastDown || "0", 10);
+        page.dataset.lastDown = now.toString();
+
+        // 💡 1. 核心原生的雙擊按下截流鎖：若兩次按下時間差小於 300 毫秒，判定為完美雙擊
+        if (now - lastDown < 300 && now - lastDown > 0) {
+            const rect = page.parentElement.getBoundingClientRect();
+            const clickXInsideScene = e.clientX - rect.left;
+            const midPoint = rect.width / 2;
+
+            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            if (clickXInsideScene > midPoint) {
+                // 雙擊右半邊：向後翻頁
+                page.style.transform = 'rotateY(-180deg)';
+                currentRotation = -180;
+            } else {
+                // 雙擊左半邊：向前翻頁
+                page.style.transform = 'rotateY(0deg)';
+                currentRotation = 0;
+            }
+            
+            // 💡 終極截流：直接在按下時阻斷一切後續指標捕獲，徹底繞過 lostpointercapture 的底層 Bug
+            e.preventDefault();
+            return;
+        }
+
+        // 📐 2. 若這是一次正常的慢速拖拽，則 100% 沿用您最健康的原始指標捕獲控制鏈
         isDragging = true;
         startX = e.clientX;
         page.style.transition = 'none';
         page.setPointerCapture(e.pointerId);
     });
+
 
     page.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
@@ -750,26 +780,7 @@ function openVocabList() {
     page.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
         isDragging = false;
-                // 💡 嵌入點：由瀏覽器底層計數，e.detail 等於 2 代表快速雙擊 (0全域變數污染)
-        if (e.detail === 2) {
-            // 抓取整個書本舞台的寬度，判斷雙擊的位置在左半邊還是右半邊
-            const rect = page.parentElement.getBoundingClientRect();
-            const clickXInsideScene = e.clientX - rect.left;
-            const midPoint = rect.width / 2;
-
-            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
-            
-            if (clickXInsideScene > midPoint) {
-                // 雙擊右半邊：命令活頁直接往左翻頁
-                page.style.transform = 'rotateY(-180deg)';
-                currentRotation = -180;
-            } else {
-                // 雙擊左半邊：命令活頁直接往右拉回
-                page.style.transform = 'rotateY(0deg)';
-                currentRotation = 0;
-            }
-            return; // 💡 雙擊成功立刻翻頁並截流，阻斷下方原本會強行拉回原點的吸附算法
-        }
+        
 const matrix = window.getComputedStyle(page).transform;
 let actualAngle = 0;
 if (matrix && matrix !== 'none') {
