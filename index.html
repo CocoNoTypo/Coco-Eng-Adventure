@@ -643,101 +643,26 @@ function startMistakeQuiz() {
         container.appendChild(btn);
     });
 }
-function openVocabList() {
-    document.getElementById('modal-title').innerText = "📝 精緻生字簿";
-    document.getElementById('rev-quiz-zone').style.display = "none";
-    const mc = document.getElementById('modal-content');
-    mc.style.display = "block";
-    
-    // 讀取本地生字數據
-    let v = JSON.parse(localStorage.getItem('kekeMyVocab') || '[]');
-    
-    // 輔助函式：將單字卡陣列轉為 HTML 字符串
-    const renderCards = (arr) => arr.map(i => `
-        <div class="vocab-card" style="padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.85rem;">
-            <strong>${i.w}</strong><br>
-            <small style="font-size: 0.75rem; color:#666;">${i.m}</small>
-            <span style="position:absolute; right:8px; bottom:3px; font-size:0.55rem; color:#bbb;">${i.d}</span>
-        </div>
-    `).join('');
-
-    // 平均分配 4 個書頁的數據路由
-    let p1Data = [], p2Data = [], p3Data = [], p4Data = [];
-    if (v.length > 0) {
-        const perPage = Math.ceil(v.length / 4);
-        p1Data = v.slice(0, perPage);
-        p2Data = v.slice(perPage, perPage * 2);
-        p3Data = v.slice(perPage * 2, perPage * 3);
-        p4Data = v.slice(perPage * 3);
-    }
-
-    const emptyMsg = "<div style='text-align:center; padding:30px; font-size:0.85rem; color:#aaa; font-weight:800;'>尚無收藏</div>";
-
-    // 注入手繪風擬真 3D 雙頁展開書本結構
-    mc.innerHTML = `
-        <div class="book-scene" style="border: 3px dashed var(--shengmi-blue); border-radius: 24px;">
-            <!-- 1. 底層靜態雙頁背景 📖 -->
-            <div class="book-base">
-                <!-- 左書底 (Page 1) -->
-                <div class="base-left">
-                    <div class="book-page-content">
-                        <div class="book-page-title">📖 筆記起點</div>
-                        <div class="book-page-body">${p1Data.length ? renderCards(p1Data) : emptyMsg}</div>
-                        <div class="book-page-num">Page 1</div>
-                    </div>
-                </div>
-                <!-- 右書底 (Page 4) -->
-                <div class="base-right">
-                    <div class="book-page-content">
-                        <div class="book-page-title">終點 🏁</div>
-                        <div class="book-page-body">${p4Data.length ? renderCards(p4Data) : emptyMsg}</div>
-                        <div class="book-page-num">Page 4</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. 上層動態物理活頁 📄 -->
-            <div class="drag-page" id="targetPage">
-                <!-- 活頁正面 (Page 2) -->
-                <div class="book-side book-front-side">
-                    <div class="book-page-content">
-                        <div class="book-page-title">生字收藏</div>
-                        <div class="book-page-body">${p2Data.length ? renderCards(p2Data) : (v.length ? "" : emptyMsg)}</div>
-                        <div class="drag-hint-bar">👈 往左翻頁</div>
-                        <div class="book-page-num">Page 2</div>
-                    </div>
-                </div>
-                <!-- 活頁反面 (Page 3) -->
-                <div class="book-side book-back-side">
-                    <div class="book-page-content">
-                        <div class="book-page-title">生字續頁</div>
-                        <div class="book-page-body">${p3Data.length ? renderCards(p3Data) : (v.length ? "" : emptyMsg)}</div>
-                        <div class="drag-hint-bar">👉 往右拉回</div>
-                        <div class="book-page-num">Page 3</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('review-modal').style.display = 'flex';
-
-    // 啟動物理拖拽演算鏈 (完美支援滑鼠與手機觸控)
+    // 🚀 啟動綜合互動演算鏈 (完美相容滑鼠與手機觸控：拖拽 + 點擊)
     const page = document.getElementById('targetPage');
     if (!page) return;
 
     let isDragging = false;
     let startX = 0;
+    let startY = 0; // 追加 Y 軸判定以提高點擊精確度
     let currentRotation = 0;
     const sceneWidth = page.parentElement.offsetWidth / 2 || 170; // 動態抓取單頁寬度基準
 
+    // 1. 按下指針
     page.addEventListener('pointerdown', (e) => {
         isDragging = true;
         startX = e.clientX;
-        page.style.transition = 'none';
+        startY = e.clientY;
+        page.style.transition = 'none'; // 關閉過渡，即時跟隨游標
         page.setPointerCapture(e.pointerId);
     });
 
+    // 2. 移動指針
     page.addEventListener('pointermove', (e) => {
         if (!isDragging) return;
         const deltaX = e.clientX - startX;
@@ -747,19 +672,47 @@ function openVocabList() {
         page.style.transform = `rotateY(${angle}deg)`;
     });
 
+    // 3. 放開指針 (核心微創嵌入：分流拖拽吸附與點擊翻頁)
     page.addEventListener('pointerup', (e) => {
         if (!isDragging) return;
         isDragging = false;
         
-const matrix = window.getComputedStyle(page).transform;
-let actualAngle = 0;
-if (matrix && matrix !== 'none') {
-    const values = matrix.split('(')[1].split(')')[0].split(',');
-    const cos = parseFloat(values[0]);
-    const sin = parseFloat(values[1]);
-    actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
-    if (actualAngle > 0) actualAngle = -actualAngle;
-}
+        // 計算總滑動距離 (勾股定理)
+        const diffX = e.clientX - startX;
+        const diffY = e.clientY - startY;
+        const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+        // 💡 核心分流機制：若移動距離小於 7 像素，判定為「純點擊」翻頁
+        if (distance < 7) {
+            // 判斷點擊的位置是在書軸中線的左側還是右側
+            const rect = page.parentElement.getBoundingClientRect();
+            const clickXInsideScene = e.clientX - rect.left;
+            const midPoint = rect.width / 2;
+
+            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            if (clickXInsideScene > midPoint) {
+                // 點擊右半邊：向後翻頁 (蓋到左邊去 -180度)
+                page.style.transform = 'rotateY(-180deg)';
+                currentRotation = -180;
+            } else {
+                // 點擊左半邊：向前翻頁 (拉回右邊去 0度)
+                page.style.transform = 'rotateY(0deg)';
+                currentRotation = 0;
+            }
+            return; // 點擊流程結束，直接阻斷下方拖拽吸附演算
+        }
+
+        // 📐 若移動距離大於 7 像素，則維持原本健康的拖拽吸附歸位演算
+        const matrix = window.getComputedStyle(page).transform;
+        let actualAngle = 0;
+        if (matrix && matrix !== 'none') {
+            const values = matrix.split('(')[1].split(')')[0].split(',');
+            const cos = parseFloat(values[0]);
+            const sin = parseFloat(values[1]);
+            actualAngle = Math.round(Math.atan2(sin, cos) * (180 / Math.PI));
+            if (actualAngle > 0) actualAngle = -actualAngle;
+        }
 
         page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
         if (actualAngle < -90) {
@@ -770,7 +723,25 @@ if (matrix && matrix !== 'none') {
             currentRotation = 0;
         }
     });
-}
+
+    // 4. 追加底層靜態背板的點擊事件，確保點擊最左或最右邊緣也能觸發無縫翻頁
+    const baseLeft = page.parentElement.querySelector('.base-left');
+    const baseRight = page.parentElement.querySelector('.base-right');
+    
+    if (baseLeft) {
+        baseLeft.onclick = () => {
+            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            page.style.transform = 'rotateY(0deg)';
+            currentRotation = 0;
+        };
+    }
+    if (baseRight) {
+        baseRight.onclick = () => {
+            page.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            page.style.transform = 'rotateY(-180deg)';
+            currentRotation = -180;
+        };
+    }
 
 function showMenu() {
     showUI('category-menu');
