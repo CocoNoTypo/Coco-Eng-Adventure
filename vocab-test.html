@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>🔬 終極完全體驗證：全域狀態機 (08.7 雲端子目錄相對路徑完全體)</title>
+    <title>🔬 終極完全體驗證：全域狀態機 (08.81 物理滿版消滅白邊完全體)</title>
     <style>
         body {
             background-color: #eef2f5;
@@ -147,14 +147,15 @@
         .vocab-card small { color: #5a4b3c; font-size: 0.75rem; margin-top: 2px; transition: opacity 0.1s; }
         .vocab-card .card-date { position: absolute; right: 6px; bottom: 3px; font-size: 0.55rem; color: #ccc; transition: opacity 0.1s; }
         
-        /* 💡 🛠️ 終極修復：對位您 GitHub 倉庫真實存在的 image/ 資料夾相對路徑，100% 滿血出圖 */
-        /* 🚀 換圖提示：未來若要換回原圖，只需把下方的 card-back02.png 改成 card-back.png 即可一秒全書換圖！ */
+        /* 💡 🛠️ test08.81 修正核心：強制沒收邊框、留白歸零、100% 滿版無縫填滿 */
+        /* 🚀 換圖提示：未來若要換回第一張原圖，只需把下方的 card-back02.png 改成 card-back.png 即可一秒全書換圖！ */
         .vocab-card.is-empty-placeholder,
         .vocab-card.is-flipped-done {
             background-image: url('image/card-back02.png') !important; 
-            background-size: cover !important;
+            background-size: 100% 100% !important; /* 絕對物理滿版 */
             background-position: center !important;
-            border: 2px solid #bda27e !important;
+            border: none !important;  /* 沒收外圈原有手繪黃邊框 */
+            padding: 0 !important;     /* 內邊距歸零，阻止圖片向內縮產生白邊 */
             box-shadow: inset 0 0 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.1) !important;
         }
 
