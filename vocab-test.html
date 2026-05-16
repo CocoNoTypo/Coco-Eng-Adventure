@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>🔬 終極完全體驗證：全域狀態機 (08.2 實體雙面自轉完全體)</title>
+    <title>🔬 終極完全體驗證：全域狀態機 (08.2 新圖片實體雙面完全體)</title>
     <style>
         body {
             background-color: #eef2f5;
@@ -126,29 +126,27 @@
             margin: 12px 0;
         }
         
-        /* 💡 🛠️ 終極 3D 雙面卡片沙盒架構：引入您提出的「自帶正反面」物理機制 */
+        /* 🏆 實體 3D 雙面卡片沙盒架構 */
         .vocab-card {
             width: 100%;
             height: 100%;
             position: relative;
-            border: none !important; /* 外框交由內層盒子渲染 */
-            background: none !important; /* 背景交由內層盒子渲染 */
-            box-shadow: none !important; /* 陰影交由內層盒子渲染 */
-            transform-style: preserve-3d; /* 啟動全 3D 空間圖層透視 */
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* 原地勻速 3D 自轉過渡 */
+            border: none !important;
+            background: none !important;
+            box-shadow: none !important;
+            transform-style: preserve-3d; 
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
             box-sizing: border-box;
         }
         
-        /* 💡 正反實體盒子防線：死死重疊，雙面物理裁剪，背面出線全切斷 */
         .card-front, .card-back {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             border-radius: 12px;
             box-sizing: border-box;
-            backface-visibility: hidden; /* 核心：當面轉向背對螢幕時，徹底隱形，消滅任何鏡像反轉 */
+            backface-visibility: hidden; 
         }
         
-        /* 100% 繼承：原有可愛手繪字卡正面樣式與邊框 */
         .card-front {
             background: linear-gradient(135deg, #ffffff 0%, #fffbf5 100%);
             border: 2px solid #f0ca95;
@@ -159,10 +157,10 @@
             flex-direction: column;
             justify-content: center;
             z-index: 2;
-            transform: rotateY(0deg); /* 正面初始角度 */
+            transform: rotateY(0deg); 
         }
         
-        /* 100% 鎖定：您提供的高質感 GitHub 線上塔羅牌背素材 */
+        /* 💡 🛠️ 修改第一處：更換為您的 card-back02.png 線上原始路徑 */
         .card-back {
             background-image: url('https://githubusercontent.com');
             background-size: cover;
@@ -170,7 +168,7 @@
             border: 2px solid #bda27e;
             box-shadow: inset 0 0 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.1);
             z-index: 1;
-            transform: rotateY(180deg); /* 核心：預先在 3D 空間中翻過去藏好，圖片早已提前加載完成 */
+            transform: rotateY(180deg); 
         }
 
         .card-front strong { color: #b25300; font-size: 0.85rem; }
@@ -235,7 +233,6 @@ const generatePageHTML = (title, cards, pageNum, isRightPage) => {
     for (let i = 0; i < CARDS_PER_PAGE; i++) {
         const item = cards[i];
         if (item && item.w) {
-            // 💡 🛠️ 成果配置：將單字字卡升級為您提出的實體雙面結構盒子
             cardsHTML += `
                 <div class="vocab-card">
                     <div class="card-front">
@@ -247,10 +244,10 @@ const generatePageHTML = (title, cards, pageNum, isRightPage) => {
                 </div>
             `;
         } else {
-            // 已解鎖空位，本來就直接顯示高質感塔羅牌背
+            // 💡 🛠️ 修改第二處：更換為正確網址，並把原先打錯的 x-index 修正回正統的 z-index!
             cardsHTML += `
                 <div class="vocab-card">
-                    <div class="card-back" style="transform: rotateY(0deg); z-index: 2;"></div>
+                    <div class="card-back" style="background-image: url('https://githubusercontent.com'); transform: rotateY(0deg); z-index: 2;"></div>
                 </div>
             `;
         }
@@ -313,7 +310,6 @@ function renderStaticSpread() {
             card.addEventListener('pointerup', clearTimer);
             card.addEventListener('pointerleave', clearTimer);
 
-            // 💡 🛠️ 您的正宗 3D 雙面自轉核心控制鏈：100% 拔除非同步 setTimeout 漏洞
             card.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 if (!isManagerMode) return;
@@ -323,15 +319,12 @@ function renderStaticSpread() {
                     return; 
                 }
 
-                // 1. 直接原地 3D 逆向自轉 180 度。正面轉進去、背面圖片轉出來，光學變化完全天然而順暢
                 card.classList.remove('shaking-mode');
                 card.style.transform = 'rotateY(180deg)';
 
-                // 2. 數據防禦線同步抹空為 null
                 splitPagesData[pageIdx][localIdx] = null;
                 allVocabs = splitPagesData.flat().filter(item => item !== null && item.w);
 
-                // 3. 在 400 毫秒物理自轉完全平貼落地的最後一毫秒，才靜默重繪底座內容
                 setTimeout(() => {
                     renderStaticSpread();
                 }, 400);
