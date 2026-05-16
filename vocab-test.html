@@ -161,7 +161,7 @@
             transform: rotateY(0deg); 
         }
         
-        /* 💡 主題一：原版 card-back 塔羅牌背 */
+        /* 💡 主題一：原版 card-back 塔羅牌背 (線上網址安全隔離) */
         .card-back {
             background-image: url('https://githubusercontent.com');
             background-size: cover;
@@ -172,7 +172,7 @@
             transform: rotateY(180deg); 
         }
         
-        /* 💡 主題二：新版 card-back02 塔羅牌背 */
+        /* 💡 主題二：新版 card-back02 塔羅牌背 (線上網址安全隔離) */
         .card-back02 {
             background-image: url('https://githubusercontent.com');
             background-size: cover;
@@ -183,8 +183,7 @@
             transform: rotateY(180deg); 
         }
         
-        /* 💡 核心切換點：當格子本來就空缺時，由 CSS 控制其直接呈現正面角度，z-index 完美上鎖 */
-        /* 🚀 提示：若到時候要換回原圖，只需把下方的 .card-back02 改成 .card-back 即可！ */
+        /* 💡 核心切換點：配置為預設使用新圖片 card-back02 */
         .vocab-card.is-empty-slot .card-back02 {
             transform: rotateY(0deg);
             z-index: 3;
@@ -252,7 +251,6 @@ const generatePageHTML = (title, cards, pageNum, isRightPage) => {
     for (let i = 0; i < CARDS_PER_PAGE; i++) {
         const item = cards[i];
         if (item && item.w) {
-            // 🚀 提示：若到時候要換回原圖，只需把下方的 card-back02 改成 card-back 即可！
             cardsHTML += `
                 <div class="vocab-card">
                     <div class="card-front">
@@ -264,7 +262,6 @@ const generatePageHTML = (title, cards, pageNum, isRightPage) => {
                 </div>
             `;
         } else {
-            // 🚀 提示：若到時候要換回原圖，只需把下方的 card-back02 改成 card-back 即可！
             cardsHTML += `
                 <div class="vocab-card is-empty-slot">
                     <div class="card-back02"></div>
@@ -371,7 +368,7 @@ function createDynamicLeaf(isForward) {
         holder.innerHTML = `<div class="drag-page" id="temp-flip-leaf" style="transform: rotateY(-180deg);"><div class="book-side book-front-side">${generatePageHTML("生字筆記", splitPagesData[leftPageNum - 2] || [], leftPageNum - 1, true)}</div><div class="book-side book-back-side">${generatePageHTML("生字筆記", splitPagesData[leftPageNum - 1] || [], leftPageNum, false)}</div></div>`;
         currentRotation = -180;
     } else {
-        holder.innerHTML = `<div class="drag-page" id="temp-flip-leaf" style="transform: rotateY(0deg);"><div class="book-side book-front-side">${generatePageHTML("生字筆記", splitPagesData[rightPageNum - 1] || [], rightPageNum, true)}</div><div class="book-side book-back-side">${generatePageHTML("https://githubusercontent.com", splitPagesData[rightPageNum] || [], rightPageNum + 1, false)}</div></div>`;
+        holder.innerHTML = `<div class="drag-page" id="temp-flip-leaf" style="transform: rotateY(0deg);"><div class="book-side book-front-side">${generatePageHTML("生字筆記", splitPagesData[rightPageNum - 1] || [], rightPageNum, true)}</div><div class="book-side book-back-side">${generatePageHTML("生字筆記", splitPagesData[rightPageNum] || [], rightPageNum + 1, false)}</div></div>`;
         currentRotation = 0;
     }
     return document.getElementById('temp-flip-leaf');
