@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>🔬 終極完全體驗證：全域狀態機 (08.6 雲端單層無損完全體)</title>
+    <title>🔬 終極完全體驗證：全域狀態機 (08.7 雲端子目錄相對路徑完全體)</title>
     <style>
         body {
             background-color: #eef2f5;
@@ -126,7 +126,7 @@
             margin: 12px 0;
         }
         
-        /* 🏆 恢復最純淨單層 DOM 字卡樣式表：100% 確保全書翻頁狀態機零負擔 */
+        /* 🏆 純淨單層 DOM 字卡樣式表 */
         .vocab-card {
             background: linear-gradient(135deg, #ffffff 0%, #fffbf5 100%);
             border: 2px solid #f0ca95;
@@ -141,17 +141,17 @@
             box-sizing: border-box;
             transition: background 0.2s, border 0.2s, box-shadow 0.2s, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             transform-style: preserve-3d; 
-            backface-visibility: hidden; /* 開啟物理裁剪，翻面自動隱形 */
+            backface-visibility: hidden; 
         }
         .vocab-card strong { color: #b25300; font-size: 0.85rem; transition: opacity 0.1s; }
         .vocab-card small { color: #5a4b3c; font-size: 0.75rem; margin-top: 2px; transition: opacity 0.1s; }
         .vocab-card .card-date { position: absolute; right: 6px; bottom: 3px; font-size: 0.55rem; color: #ccc; transition: opacity 0.1s; }
         
-        /* 💡 🛠️ 核心優化：空缺坑位與已偏轉字卡直接由純 CSS 鎖定高質感網址（預設配置為新圖02） */
-        /* 🚀 換圖提示：若到時候要換回第一張原圖，只需把下方的 card-back02.png 改成 card-back.png 即可一秒全書換圖！ */
+        /* 💡 🛠️ 終極修復：對位您 GitHub 倉庫真實存在的 image/ 資料夾相對路徑，100% 滿血出圖 */
+        /* 🚀 換圖提示：未來若要換回原圖，只需把下方的 card-back02.png 改成 card-back.png 即可一秒全書換圖！ */
         .vocab-card.is-empty-placeholder,
         .vocab-card.is-flipped-done {
-            background-image: url('https://githubusercontent.com') !important;
+            background-image: url('image/card-back02.png') !important; 
             background-size: cover !important;
             background-position: center !important;
             border: 2px solid #bda27e !important;
@@ -161,7 +161,7 @@
         /* 自轉過渡樣式 */
         .vocab-card.is-flipped-active {
             transform: rotateY(180deg);
-            pointer-events: none; /* 動畫中嚴格禁點防護 */
+            pointer-events: none; 
         }
         
         h3 { color: #704214; margin: 0; text-align: center; font-size: 1.15rem; border-bottom: 2px dashed rgba(112,66,20,0.18); padding-bottom: 6px; }
@@ -217,7 +217,6 @@ let longPressTimer = null;
 const CARDS_PER_PAGE = 6;
 const sceneWidth = 712 / 2; 
 
-// 💡 恢復純淨單層 HTML 產生器：絕不在字串內拼裝網址，防堵解析混亂與 Z-Index 擊穿 Bug
 const generatePageHTML = (title, cards, pageNum, isRightPage) => {
     let cardsHTML = "";
     for (let i = 0; i < CARDS_PER_PAGE; i++) {
@@ -294,7 +293,6 @@ function renderStaticSpread() {
             card.addEventListener('pointerup', clearTimer);
             card.addEventListener('pointerleave', clearTimer);
 
-            // 💡 🛠️ 全新單層 CSS 類名翻轉時間軸：絕不干擾全書 3D 翻頁狀態機
             card.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 if (!isManagerMode) return;
@@ -304,24 +302,19 @@ function renderStaticSpread() {
                     return; 
                 }
 
-                // 【第 0ms：起點切斷】立刻擦除發抖，文字透明度直接抹空，徹底阻斷倒轉鏡像殘影！
                 card.classList.remove('shaking-mode');
                 const txtElements = card.querySelectorAll('strong, small, .card-date');
                 txtElements.forEach(el => el.style.opacity = '0'); 
                 
-                // 啟動原生自轉 180 度
                 card.classList.add('is-flipped-active');
 
-                // 【第 200ms：垂直盲區】卡片旋轉到 90 度完全垂直的瞬間，直接由 CSS 無損激活牌背底圖
                 setTimeout(() => {
                     card.classList.add('is-flipped-done');
                 }, 200);
 
-                // 數據抹空防禦線
                 splitPagesData[pageIdx][localIdx] = null;
                 allVocabs = splitPagesData.flat().filter(item => item !== null && item.w);
 
-                // 【第 400ms：落地平貼】原地動畫平服後，全域安全重繪底座
                 setTimeout(() => {
                     renderStaticSpread();
                 }, 400);
